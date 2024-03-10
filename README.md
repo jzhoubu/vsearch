@@ -1,6 +1,10 @@
 # VDR: Vocabulary Disentangled Retriever
 
-This includes the original implementation of VDR. For any questions related to the implementation or the paper, please leave [issues](https://github.com/jzhoubu/VDR/issues) or contact [first authors](jzhoubu@connect.ust.hk).
+This repository includes the original implementation of VDR. For any questions related to the implementation or the paper, please leave [issues](https://github.com/jzhoubu/VDR/issues) or email the [first author](jzhoubu@connect.ust.hk).
+
+<div align=center>
+    <img src="examples/images/vdr-cover.png" width="70%" height="70%">
+</div>
 
 <!--
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/jzhoubu/VDR/blob/master/LICENSE)
@@ -8,11 +12,11 @@ This includes the original implementation of VDR. For any questions related to t
 
 ## 🗺 Overview
 
-1. [Quick Start](#-quick-start)
+1. [Preparation](#-preparation)
     1. [Installation](#installation)
-    2. [Data Preparation](#data-preparation)
+    2. [Data Download](#data-download)
 
-2. [Tutorial](#-tutorial)
+2. [Quick Start](#-quick-start)
     - [Text-to-text Retrieval](#text-to-text-retrieval)
     - [Cross-modal Retrieval](#cross-modal-retrieval)
     - [Disentanglement and Reasoning](#disentanglement-and-reasoning)
@@ -29,8 +33,7 @@ This includes the original implementation of VDR. For any questions related to t
     3. [Score](#scoring)
 -->
 
-## 🚀 Quick Start
-
+## 💻 Preparation
 
 ### Installation
 
@@ -40,7 +43,7 @@ conda activate vdr
 pip install -r requirements.txt
 ```
 
-### Data Preparation
+### Data Download
 
 Prepare data using identifiers in the YAML configuration files at `conf/data_stores/*.yaml`.
 
@@ -73,7 +76,7 @@ During training, we present an `Info Card` to monitor the progress of the traini
 -->
 
 
-## 🎮 Tutorial
+## 🚀 Quick Start
 
 ### Text-to-text Retrieval
 ```python
@@ -110,7 +113,7 @@ tensor([[91.1257, 17.6930, 13.0358, 12.4576]], device='cuda:0')
 ```python
 >>> vdr_cross_modal = Retriever.from_pretrained("vsearch/vdr-cross-modal") # Note: encoder_p for images, encoder_q for text.
 
->>> image_file = '/export/data/jzhoubu/workspace/vsearch/examples/images/mars.jpeg'
+>>> image_file = '/export/data/jzhoubu/workspace/vsearch/examples/images/mars.png'
 >>> texts = [
 ...     "Four thousand Martian days after setting its wheels in Gale Crater on Aug. 5, 2012, NASA’s Curiosity rover remains busy conducting exciting science. The rover recently drilled its 39th sample then dropped the pulverized rock into its belly for detailed analysis.",
 ...     "ChatGPT is a chatbot developed by OpenAI and launched on November 30, 2022. Based on a large language model, it enables users to refine and steer a conversation towards a desired length, format, style, level of detail, and language."
@@ -121,7 +124,7 @@ tensor([[91.1257, 17.6930, 13.0358, 12.4576]], device='cuda:0')
 # Image-text Relevance
 >>> scores = image_emb @ text_emb.t()
 >>> print(scores)
-tensor([[0.3201, 0.0981]])
+tensor([[0.3209, 0.0984]])
 ```
 
 
