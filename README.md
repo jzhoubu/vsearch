@@ -2,9 +2,6 @@
 
 This includes the original implementation of the vocabulary-based neural retriever, including VDR (vocabulary disentangled retrieval). For any questions related to the implementation or the paper, please leave [issues](https://github.com/jzhoubu/VDR/issues) or contact [first authors](jzhoubu@connect.ust.hk).
 
-[![Code License](https://img.shields.io/badge/Code%20License-Apache_2.0-brightgreen.svg)](https://github.com/OpenLMLab/MOSS/blob/main/LICENSE)
-[![Data License](https://img.shields.io/badge/Data%20License-CC%20BY--NC%204.0-blue.svg)](https://github.com/OpenLMLab/MOSS/blob/main/DATA_LICENSE)
-[![Model License](https://img.shields.io/badge/Model%20License-GNU%20AGPL%203.0-red.svg)](https://github.com/OpenLMLab/MOSS/blob/main/MODEL_LICENSE)
 
 
 
