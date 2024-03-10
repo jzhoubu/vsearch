@@ -1,0 +1,23 @@
+max_len: 512
+shared_encoder: False
+device:
+
+encoder_q:
+  type: vdr
+  model_id: bert-base-uncased
+  max_len: 128
+  norm: False
+  shift_vocab_num: 999
+  topk: 768
+  pooling: max
+  pooling_topk: 
+
+encoder_p:
+  type: vdr
+  model_id: bert-base-uncased
+  max_len: 256
+  norm: False
+  shift_vocab_num: 999
+  topk: 768
+  pooling: max
+  pooling_topk: 

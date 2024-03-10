@@ -1,0 +1,20 @@
+max_len: 256
+dropout: 0.1
+shared_encoder: False
+device: 
+
+encoder_q:
+  type: dpr
+  max_seq_len: 128
+  pretrained: True
+  norm: False
+  base_model_id: bert-base-uncased
+  hidden_size: 768
+
+encoder_p:
+  type: dpr
+  max_seq_len: 256
+  pretrained: True
+  norm: False
+  base_model_id: bert-base-uncased
+  hidden_size: 768

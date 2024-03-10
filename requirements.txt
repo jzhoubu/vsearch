@@ -1,0 +1,8 @@
+torch==2.0.0
+transformers==4.34.0
+hydra-core==1.3.2
+datasets==2.13.1
+wget
+spacy
+spicy
+wordcloud

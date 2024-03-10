@@ -1,0 +1,169 @@
+from contextlib import nullcontext
+from functools import partial
+import logging
+from typing import List, Union
+import matplotlib.pyplot as plt
+
+import torch
+from torch import Tensor as T
+import torch.nn.functional as F
+from tqdm import tqdm
+from transformers import AutoModel, AutoTokenizer, BertConfig, BatchEncoding, PreTrainedModel
+
+from ...utils.sparse import build_bow_mask, build_topk_mask, elu1p
+from ...utils.visualize import wordcloud_from_dict
+
+
+logger = logging.getLogger(__name__)
+
+class VDREncoderConfig(BertConfig):
+    """
+    Configuration class for VDR Encoder based on BERT.
+
+    Args:
+        model_id (str): Base model configuration. Defaults to 'bert-base-uncased'.
+        max_len (int): Maximum length of the input sequences. Defaults to 256.
+        norm (bool): Whether normalization is to be applied. Defaults to False.
+        shift_vocab_num (int): Number to shift in the vocabulary. Defaults to 999 for bert-based-uncased vocab.
+    """
+
+    def __init__(
+        self,
+        model_id='bert-base-uncased',
+        max_len=256,
+        norm=False,
+        shift_vocab_num=999,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+        self.max_len = max_len
+        self.model_id = model_id
+        self.norm = norm
+        self.shift_vocab_num = shift_vocab_num
+
+
+class VDREncoder(PreTrainedModel):
+    config_class = VDREncoderConfig
+
+    def __init__(self, config: VDREncoderConfig, **kwargs):
+        super().__init__(config, **kwargs)
+        self.config = config
+        self.ln = torch.nn.LayerNorm(self.config.hidden_size)
+        self.bert_model = AutoModel.from_pretrained(config.model_id, add_pooling_layer=False)
+        self.tokenizer = AutoTokenizer.from_pretrained(config.model_id)
+        self.build_bow_mask = partial(build_bow_mask, vocab_size=config.vocab_size, shift_num=config.shift_vocab_num, norm=config.norm)
+
+    def forward(
+        self,
+        input_ids: T,
+        token_type_ids: T,
+        attention_mask: T,
+    ) -> T:
+        
+        outputs = self.bert_model(
+            input_ids=input_ids,
+            token_type_ids=token_type_ids,
+            attention_mask=attention_mask,
+        )
+        last_hidden_state = outputs.last_hidden_state
+        last_hidden_state_ln = self.ln(last_hidden_state)
+        vocab_embs = last_hidden_state_ln @ self.bert_model.embeddings.word_embeddings.weight[self.config.shift_vocab_num:, :].t()
+        vocab_embs = elu1p(vocab_embs)
+        if self.config.pooling == "max":
+            vocab_emb = vocab_embs.max(1)[0]
+        elif self.config.pooling == "mean":
+            if self.config.pooling_topk:
+                vocab_emb = vocab_embs.topk(self.config.pooling_topk, dim=1).values.mean(1)
+            else:
+                vocab_emb = vocab_emb.mean(1)
+        else:
+            raise NotImplementedError
+        vocab_emb = F.normalize(vocab_emb) if self.config.norm else vocab_emb
+        return vocab_emb
+
+    def encode(
+        self,
+        texts: List[str], 
+        max_len: int = None, 
+    ) -> BatchEncoding:
+        max_len = max_len or self.config.max_len
+        encoding = self.tokenizer.batch_encode_plus(texts, padding="max_length", truncation=True, max_length=max_len, return_tensors='pt')
+        encoding = encoding.to(self.device)
+        return encoding
+
+    def embed(
+        self, 
+        texts: Union[List[str], str], 
+        batch_size: int = 128, 
+        max_len: int = None, 
+        k: int = None,
+        bow: bool = False, 
+        training: bool = False,
+        verbose: bool = False,
+        **kwargs
+    ) -> T:
+        """Embeds texts into lexical representations.
+
+        Args:
+            texts (str, List[str]): Text or list of texts to be embedded.
+            batch_size (int): Size of batches. Defaults to 128.
+            max_len (int): Maximum sequence length.
+            k (int): Number of active dimensions after top-k sparsification. 
+                - If k=0, only activate the dimensions of the presented token;
+                - If k=-1 or None, activate all the dimensions;
+                - Otherwise, acitvate only top-k dimension. 
+            bow (bool): If True, embeds texts into binary token representations.
+            training (bool): If True, keeps gradients for backpropagation. 
+            verbose (bool): If True, displays embedding progress. 
+
+        Returns:
+            Tensor: Lexical representations of input texts, with shape [N, V], 
+                where N is the number of texts and V is the vocabulary size.
+        """
+
+        max_len = max_len or self.config.max_len
+        k = k or self.config.topk
+        if isinstance(texts, str):
+            texts = [texts]
+        if not training and self.training:
+            self.eval()
+
+        with torch.no_grad() if not training else nullcontext():
+            batch_embs = []
+            num_text = len(texts)
+            iterator = range(0, num_text, batch_size)
+            for batch_start in tqdm(iterator) if verbose else iterator:
+                batch_texts = texts[batch_start : batch_start + batch_size]
+                encoding = self.encode(batch_texts, max_len=max_len)
+                bow_mask = self.build_bow_mask(encoding.input_ids)
+                if bow:
+                    batch_emb = bow_mask
+                else:
+                    batch_emb = self(**encoding)
+                    if k == 0: # acitvate dimension of presented token only
+                        topk_mask = torch.zeros_like(batch_emb)
+                    elif k == None or k == -1: # acitvate all dimensions
+                        topk_mask = torch.ones_like(batch_emb)
+                    else: # acitvate top-k dimensions
+                        topk_mask = build_topk_mask(batch_emb, k)
+                    mask = torch.logical_or(bow_mask, topk_mask)
+                    batch_emb *= mask
+
+                batch_embs.append(batch_emb)
+            emb = torch.cat(batch_embs, dim=0)
+        return emb
+
+
+    def disentangle(self, text: str, k: int = 768, visual=False, save_file=None):
+        topk = self.embed(text).topk(k)
+        topk_token_ids = topk.indices.flatten().tolist()
+        topk_token_ids = [x + self.config.shift_vocab_num for x in topk_token_ids if x >= self.config.shift_vocab_num]
+        topk_values = topk.values.flatten().tolist()
+        topk_tokens = self.tokenizer.convert_ids_to_tokens(topk_token_ids)
+        results = dict(zip(topk_tokens,topk_values))
+        if visual:
+            wordcloud_from_dict(results, k=k, save_file=save_file)
+        return results
+
+    dst = disentangle
+
