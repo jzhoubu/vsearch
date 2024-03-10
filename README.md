@@ -1,9 +1,10 @@
 # VDR: Vocabulary Disentangled Retriever
 
-This includes the original implementation of the vocabulary-based neural retriever, including VDR (vocabulary disentangled retrieval). For any questions related to the implementation or the paper, please leave [issues](https://github.com/jzhoubu/VDR/issues) or contact [first authors](jzhoubu@connect.ust.hk).
+This includes the original implementation of VDR. For any questions related to the implementation or the paper, please leave [issues](https://github.com/jzhoubu/VDR/issues) or contact [first authors](jzhoubu@connect.ust.hk).
 
-
-
+<!--
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/jzhoubu/VDR/blob/master/LICENSE)
+-->
 
 ## 🗺 Overview
 
