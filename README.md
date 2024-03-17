@@ -20,6 +20,8 @@ This repository includes the original implementation of VDR. For any questions r
     - [Text-to-text Retrieval](#text-to-text-retrieval)
     - [Cross-modal Retrieval](#cross-modal-retrieval)
     - [Disentanglement and Reasoning](#disentanglement-and-reasoning)
+    - [Visualization](#visualization)
+
     <!--
     - [Semi-parametric Search](#example-semi-parametric-search)
     -->
@@ -166,6 +168,12 @@ tensor([[0.3209, 0.0984]])
 >>> scores = q_emb @ p_bin.t()
 ```
 -->
+
+### Visualization
+
+<div align=center>
+    <img src="examples/images/visual.png" width="90%" height="90%">
+</div>
 
 
 
