@@ -172,7 +172,7 @@ tensor([[0.3209, 0.0984]])
 ### Visualization
 
 <div align=center>
-    <img src="examples/images/visual.png" width="90%" height="90%">
+    <img src="examples/images/visual.png" width="100%" height="100%">
 </div>
 
 
