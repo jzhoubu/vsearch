@@ -26,6 +26,7 @@ class VDRTextEncoderConfig(BertConfig):
         self.max_len = max_len
         self.model_id = model_id
 
+
 class VDRTextEncoder(PreTrainedModel):
     config_class = VDRTextEncoderConfig
 

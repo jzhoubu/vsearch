@@ -65,11 +65,9 @@ class BiEncoder(PreTrainedModel):
         super().__init__(config)
         encoder_q_cfg = CONFIG_TYPES[config.encoder_q['type']](**config.encoder_q)
         encoder_p_cfg = CONFIG_TYPES[config.encoder_p['type']](**config.encoder_p)
-        config.encoder_q = encoder_q_cfg
-        config.encoder_p = encoder_p_cfg
         self.config = config
-        self.encoder_q = ENCODER_TYPES[config.encoder_q.type](encoder_q_cfg)
-        self.encoder_p = ENCODER_TYPES[config.encoder_p.type](encoder_p_cfg) if not self.config.shared_encoder else self.encoder_q
+        self.encoder_q = ENCODER_TYPES[encoder_q_cfg.type](encoder_q_cfg)
+        self.encoder_p = ENCODER_TYPES[encoder_p_cfg.type](encoder_p_cfg) if not self.config.shared_encoder else self.encoder_q
 
     def forward(
         self,
