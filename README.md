@@ -4,7 +4,7 @@
 [![Openreview](https://img.shields.io/badge/Openreview-red.svg)](https://openreview.net/forum?id=ZlQRiFmq7Y)
 [![Demo](https://img.shields.io/badge/Demo-Brightgreen.svg)](https://jzhoubu.github.io/vdr.github.io/)
 
-This repository includes the original implementation of VDR. For any questions related to the implementation or the paper, please leave [issues](https://github.com/jzhoubu/VDR/issues) or email the [first author](jzhoubu@connect.ust.hk).
+This is the official repository for "[Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y)". For any questions related to the implementation or the paper, please leave [issues](https://github.com/jzhoubu/VDR/issues) or email the [first author](jzhoubu@connect.ust.hk).
 
 <div align=center>
     <img src="examples/images/vdr-cover.png" width="70%" height="70%">
@@ -189,3 +189,7 @@ year={2024},
 url={https://openreview.net/forum?id=ZlQRiFmq7Y}
 }
 ```
+
+## License
+`VDR` is licensed under the terms of the MIT license. See LICENSE for more details.
+
