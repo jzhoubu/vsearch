@@ -108,7 +108,9 @@ During training, we present an `Info Card` to monitor the progress of the traini
  # Query-passage Relevance
 >>> scores = q_emb @ p_emb.t()
 >>> print(scores)
-tensor([[91.1257, 17.6930, 13.0358, 12.4576]], device='cuda:0')
+
+# Output: 
+# tensor([[91.1257, 17.6930, 13.0358, 12.4576]], device='cuda:0')
 ```
 
 ### Cross-modal Retrieval
@@ -126,7 +128,9 @@ tensor([[91.1257, 17.6930, 13.0358, 12.4576]], device='cuda:0')
 # Image-text Relevance
 >>> scores = image_emb @ text_emb.t()
 >>> print(scores)
-tensor([[0.3209, 0.0984]])
+
+# Output: 
+# tensor([[0.3209, 0.0984]])
 ```
 
 
@@ -135,22 +139,26 @@ tensor([[0.3209, 0.0984]])
 # Disentangling query embedding
 >>> disentanglement = vdr_text2text.encoder_q.dst(query, k=768, visual=True) # Generate a word cloud if `visual`=True
 >>> print(disentanglement)
-{
-    'tea': 6.9349799156188965,
-    'green': 5.861555576324463,
-    'bitter': 4.233378887176514,
-    ...
-}
+
+# Output: 
+# {
+#     'tea': 6.9349799156188965,
+#     'green': 5.861555576324463,
+#     'bitter': 4.233378887176514,
+#     ...
+# }
 
 # Retrieval reasoning on query-passage match
 >>> reasons = vdr_text2text.explain(q=query, p=passages[0], k=768, visual=True)
 >>> print(reasons)
-{
-    'tea': 41.2425175410242,
-    'green': 38.784010452150596,
-    'effects': 1.1575102038585783,
-    ...
-}
+
+# Output: 
+# {
+#     'tea': 41.2425175410242,
+#     'green': 38.784010452150596,
+#     'effects': 1.1575102038585783,
+#     ...
+# }
 ```
 
 
