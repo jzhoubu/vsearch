@@ -200,4 +200,3 @@ url={https://openreview.net/forum?id=ZlQRiFmq7Y}
 
 ## License
 `VDR` is licensed under the terms of the MIT license. See LICENSE for more details.
-
