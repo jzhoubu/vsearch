@@ -117,7 +117,7 @@ During training, we present an `Info Card` to monitor the progress of the traini
 ```python
 >>> vdr_cross_modal = Retriever.from_pretrained("vsearch/vdr-cross-modal") # Note: encoder_p for images, encoder_q for text.
 
->>> image_file = '/export/data/jzhoubu/workspace/vsearch/examples/images/mars.png'
+>>> image_file = './examples/images/mars.png'
 >>> texts = [
 ...     "Four thousand Martian days after setting its wheels in Gale Crater on Aug. 5, 2012, NASA’s Curiosity rover remains busy conducting exciting science. The rover recently drilled its 39th sample then dropped the pulverized rock into its belly for detailed analysis.",
 ...     "ChatGPT is a chatbot developed by OpenAI and launched on November 30, 2022. Based on a large language model, it enables users to refine and steer a conversation towards a desired length, format, style, level of detail, and language."
