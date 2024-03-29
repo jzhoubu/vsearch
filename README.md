@@ -37,13 +37,22 @@ This is the official repository for "[Retrieval-based Disentangled Representatio
 
 ## 💻 Preparation
 
-### Installation
+### Environment Setup (via pip)
 
 ```
 conda create -n vdr python=3.9
 conda activate vdr
 pip install -r requirements.txt
 ```
+
+### Environment Setup (via poetry)
+
+```
+# install poetry first
+poetry install
+poetry shell
+```
+
 
 ### Data Download
 
@@ -56,6 +65,15 @@ python download.py nq_train
 python download.py nq_train trivia_train
 # Download all dataset files:
 python download.py all
+```
+
+### Test
+```bash
+python -m examples.demo.quick_start
+
+# Ouput:
+# tensor([[91.1257, 17.6930, 13.0358, 12.4576]], device='cuda:0')
+# tensor([[0.3209, 0.0984]])
 ```
 
 <!--
