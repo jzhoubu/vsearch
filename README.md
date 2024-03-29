@@ -48,7 +48,8 @@ pip install -r requirements.txt
 ### Environment Setup (via poetry)
 
 ```
-# install poetry first
+# install poetry
+# curl -sSL https://install.python-poetry.org | python3 -
 poetry install
 poetry shell
 ```
@@ -70,8 +71,7 @@ python download.py all
 ### Test
 ```bash
 python -m examples.demo.quick_start
-
-# Ouput:
+# Expected Ouput:
 # tensor([[91.1257, 17.6930, 13.0358, 12.4576]], device='cuda:0')
 # tensor([[0.3209, 0.0984]])
 ```
