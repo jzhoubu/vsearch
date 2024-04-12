@@ -13,8 +13,8 @@ This is the official repository for "[Retrieval-based Disentangled Representatio
 ## 🗺 Overview
 
 1. [Preparation](#-preparation)
-    1. [Installation](#installation)
-    2. [Data Download](#data-download)
+    1. [Setup Environment](#setup-environment-via-pip)
+    2. [Download Data](#download-data)
 
 2. [Quick Start](#-quick-start)
     - [Text-to-text Retrieval](#text-to-text-retrieval)
@@ -37,7 +37,7 @@ This is the official repository for "[Retrieval-based Disentangled Representatio
 
 ## 💻 Preparation
 
-### Environment Setup (via pip)
+### Setup Environment via pip
 
 ```
 conda create -n vdr python=3.9
@@ -45,7 +45,7 @@ conda activate vdr
 pip install -r requirements.txt
 ```
 
-### Environment Setup (via poetry)
+### Setup Environment via poetry
 
 ```
 # install poetry
@@ -54,10 +54,9 @@ poetry install
 poetry shell
 ```
 
+### Download Data
 
-### Data Download
-
-Prepare data using identifiers in the YAML configuration files at `conf/data_stores/*.yaml`.
+Download data using identifiers in the YAML configuration files at `conf/data_stores/*.yaml`.
 
 ```bash
 # Download a single dataset file
