@@ -4,7 +4,7 @@
 [![Openreview](https://img.shields.io/badge/Openreview-red.svg)](https://openreview.net/forum?id=ZlQRiFmq7Y)
 [![Demo](https://img.shields.io/badge/Demo-Brightgreen.svg)](https://jzhoubu.github.io/vdr.github.io/)
 
-This is the official repository for "[Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y)". For any questions related to the implementation or the paper, please leave [issues](https://github.com/jzhoubu/VDR/issues) or email the [first author](jzhoubu@connect.ust.hk).
+This is the official repository for "[Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y)".
 
 <div align=center>
     <img src="examples/images/vdr-cover.png" width="70%" height="70%">
@@ -13,7 +13,7 @@ This is the official repository for "[Retrieval-based Disentangled Representatio
 ## 🗺 Overview
 
 1. [Preparation](#-preparation)
-    1. [Setup Environment](#setup-environment-via-pip)
+    1. [Setup Environment](#setup-environment-via-poetry)
     2. [Download Data](#download-data)
 
 2. [Quick Start](#-quick-start)
@@ -22,20 +22,17 @@ This is the official repository for "[Retrieval-based Disentangled Representatio
     - [Disentanglement and Reasoning](#disentanglement-and-reasoning)
     - [Visualization](#visualization)
 
-    <!--
-    - [Semi-parametric Search](#example-semi-parametric-search)
-    -->
-
-<!--
-2. [Training](#-training)
-
-3. [Evaluation](#-evaluation)
-    1. [Indexing](#indexing)
-    2. [Search](#search)
-    3. [Score](#scoring)
--->
 
 ## 💻 Preparation
+
+### Setup Environment via poetry
+
+```
+# install poetry first
+# curl -sSL https://install.python-poetry.org | python3 -
+poetry install
+poetry shell
+```
 
 ### Setup Environment via pip
 
@@ -43,15 +40,6 @@ This is the official repository for "[Retrieval-based Disentangled Representatio
 conda create -n vdr python=3.9
 conda activate vdr
 pip install -r requirements.txt
-```
-
-### Setup Environment via poetry
-
-```
-# install poetry
-# curl -sSL https://install.python-poetry.org | python3 -
-poetry install
-poetry shell
 ```
 
 ### Download Data
@@ -132,7 +120,8 @@ During training, we present an `Info Card` to monitor the progress of the traini
 
 ### Cross-modal Retrieval
 ```python
->>> vdr_cross_modal = Retriever.from_pretrained("vsearch/vdr-cross-modal") # Note: encoder_p for images, encoder_q for text.
+# Note: we use `encoder_q` for text and `encoder_p` for images
+>>> vdr_cross_modal = Retriever.from_pretrained("vsearch/vdr-cross-modal") 
 
 >>> image_file = './examples/images/mars.png'
 >>> texts = [
