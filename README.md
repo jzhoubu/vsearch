@@ -10,6 +10,12 @@ This is the official repository for "[Retrieval-based Disentangled Representatio
     <img src="examples/images/vdr-cover.png" width="70%" height="70%">
 </div>
 
+## What's News 🔥
+- Apr. 2024: We launch an online live **[playground](https://0a157bea3880b2d119.gradio.live/)** 🎮 for VDR. Come and explore it! 
+- Feb. 2024: [VDR: Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y) has been accepted as a spotlight at ICLR2024.
+
+
+
 ## 🗺 Overview
 
 1. [Preparation](#-preparation)
@@ -120,7 +126,7 @@ During training, we present an `Info Card` to monitor the progress of the traini
 
 ### Cross-modal Retrieval
 ```python
-# Note: we use `encoder_q` for text and `encoder_p` for images
+# Note: we use `encoder_q` for text and `encoder_p` for image
 >>> vdr_cross_modal = Retriever.from_pretrained("vsearch/vdr-cross-modal") 
 
 >>> image_file = './examples/images/mars.png'
