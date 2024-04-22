@@ -11,7 +11,7 @@ This is the official repository for "[Retrieval-based Disentangled Representatio
 </div>
 
 ## What's News 🔥
-- Apr. 2024: We launch an online live **[playground](https://0a157bea3880b2d119.gradio.live/)** 🎮 for VDR. Come and explore it! 
+- Apr. 2024: We launch an online live **[playground](https://38042e4490dd4fa47d.gradio.live)** 🎮 for VDR. Come and explore it! 
 - Feb. 2024: [VDR: Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y) has been accepted as a spotlight at ICLR2024.
 
 
