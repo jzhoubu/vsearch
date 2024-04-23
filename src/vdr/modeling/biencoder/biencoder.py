@@ -3,7 +3,7 @@ import random
 import collections
 import numpy as np
 import torch
-from typing import Tuple, List, Dict
+from typing import Tuple, List, Dict, Union
 from torch import Tensor as T
 from transformers import PreTrainedModel, PretrainedConfig
 import matplotlib.pyplot as plt
@@ -159,6 +159,36 @@ class BiEncoder(PreTrainedModel):
                     batch_answers,
                 )
     
+    def encode_queries(self, queries: list[str], batch_size=32, **kwargs) -> Union[List[np.ndarray], List[torch.Tensor]]:
+        """
+        Returns a list of embeddings for the given sentences.
+        Args:
+            queries: List of sentences to encode
+
+        Returns:
+            List of embeddings for the given sentences
+        """
+        q_emb = self.encoder_q.embed(queries, batch_size, **kwargs)
+        q_embs = list(torch.unbind(q_emb, dim=0))
+        return q_embs
+
+    def encode_corpus(self, corpus: Union[List[str], List[dict[str, str]]], batch_size=32, **kwargs) -> Union[List[np.ndarray], List[torch.Tensor]]:
+        """
+        Returns a list of embeddings for the given sentences.
+        Args:
+            corpus: List of sentences to encode
+                or list of dictionaries with keys "title" and "text"
+
+        Returns:
+            List of embeddings for the given sentences
+        """
+        if isinstance(corpus[0], dict):
+            corpus = [f"{x['title']} [SEP] {x['text']}" for x in corpus]
+        p_emb = self.encoder_p.embed(corpus, batch_size, **kwargs)
+        p_embs = list(torch.unbind(p_emb, dim=0))
+        return p_embs
+
+
     def explain(self, q, p, k=None, visual=False, visual_width=800, visual_height=800):
         q_dst = self.encoder_q.dst(q, k=k)
         p_dst = self.encoder_p.dst(p, k=k)
@@ -177,3 +207,4 @@ class BiEncoder(PreTrainedModel):
             plt.show()
 
         return results
+
