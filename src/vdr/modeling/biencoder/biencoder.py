@@ -168,8 +168,8 @@ class BiEncoder(PreTrainedModel):
         Returns:
             List of embeddings for the given sentences
         """
-        q_emb = self.encoder_q.embed(queries, batch_size, **kwargs)
-        q_embs = list(torch.unbind(q_emb, dim=0))
+        q_emb = self.encoder_q.embed(queries, batch_size, **kwargs).cpu().numpy()
+        q_embs = [q_emb[i] for i in range(q_emb.shape[0])]
         return q_embs
 
     def encode_corpus(self, corpus: Union[List[str], List[dict[str, str]]], batch_size=32, **kwargs) -> Union[List[np.ndarray], List[torch.Tensor]]:
@@ -184,12 +184,11 @@ class BiEncoder(PreTrainedModel):
         """
         if isinstance(corpus[0], dict):
             corpus = [f"{x['title']} [SEP] {x['text']}" for x in corpus]
-        p_emb = self.encoder_p.embed(corpus, batch_size, **kwargs)
-        p_embs = list(torch.unbind(p_emb, dim=0))
+        p_emb = self.encoder_p.embed(corpus, batch_size, **kwargs).cpu().numpy()
+        p_embs = [p_emb[i] for i in range(p_emb.shape[0])]
         return p_embs
 
-
-    def explain(self, q, p, k=None, visual=False, visual_width=800, visual_height=800):
+    def explain(self, q, p, k=768, visual=False, visual_width=800, visual_height=800):
         q_dst = self.encoder_q.dst(q, k=k)
         p_dst = self.encoder_p.dst(p, k=k)
         result_dict = {

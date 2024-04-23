@@ -12,7 +12,6 @@ from ...index.base import Index
 
 logger = logging.getLogger(__name__)
 
-
 class RetrieverConfig(BiEncoderConfig):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
