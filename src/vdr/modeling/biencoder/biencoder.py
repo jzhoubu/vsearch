@@ -68,6 +68,7 @@ class BiEncoder(PreTrainedModel):
         self.config = config
         self.encoder_q = ENCODER_TYPES[encoder_q_cfg.type](encoder_q_cfg)
         self.encoder_p = ENCODER_TYPES[encoder_p_cfg.type](encoder_p_cfg) if not self.config.shared_encoder else self.encoder_q
+        self.batch_size = None
 
     def forward(
         self,
@@ -159,7 +160,7 @@ class BiEncoder(PreTrainedModel):
                     batch_answers,
                 )
     
-    def encode_queries(self, queries: list[str], batch_size=32, **kwargs) -> Union[List[np.ndarray], List[torch.Tensor]]:
+    def encode_queries(self, queries: list[str], batch_size=None, return_numpy=True, **kwargs) -> Union[List[np.ndarray], List[torch.Tensor]]:
         """
         Returns a list of embeddings for the given sentences.
         Args:
@@ -168,11 +169,11 @@ class BiEncoder(PreTrainedModel):
         Returns:
             List of embeddings for the given sentences
         """
-        q_emb = self.encoder_q.embed(queries, batch_size, **kwargs).cpu().numpy()
-        q_embs = [q_emb[i] for i in range(q_emb.shape[0])]
-        return q_embs
+        batch_size = batch_size or self.batch_size
+        q_emb = self.encoder_q.embed(queries, batch_size, return_numpy=return_numpy, **kwargs)
+        return q_emb
 
-    def encode_corpus(self, corpus: Union[List[str], List[dict[str, str]]], batch_size=32, **kwargs) -> Union[List[np.ndarray], List[torch.Tensor]]:
+    def encode_corpus(self, corpus: Union[List[str], List[dict[str, str]]], batch_size=None, return_numpy=True, **kwargs) -> Union[List[np.ndarray], List[torch.Tensor]]:
         """
         Returns a list of embeddings for the given sentences.
         Args:
@@ -182,11 +183,18 @@ class BiEncoder(PreTrainedModel):
         Returns:
             List of embeddings for the given sentences
         """
-        if isinstance(corpus[0], dict):
-            corpus = [f"{x['title']} [SEP] {x['text']}" for x in corpus]
-        p_emb = self.encoder_p.embed(corpus, batch_size, **kwargs).cpu().numpy()
-        p_embs = [p_emb[i] for i in range(p_emb.shape[0])]
-        return p_embs
+        batch_size = batch_size or self.batch_size
+        processed_corpus = []
+        for p in corpus:
+            if isinstance(p, str):
+                processed_corpus.append(p)
+            elif isinstance(p, dict):
+                if "title" in p and p["title"]:
+                    processed_corpus.append(f"{p['title']} [SEP] {p['text']}")
+                else:
+                    processed_corpus.append(p['text'])
+        p_emb = self.encoder_p.embed(processed_corpus, batch_size, return_numpy=return_numpy, **kwargs)
+        return p_emb
 
     def explain(self, q, p, k=768, visual=False, visual_width=800, visual_height=800):
         q_dst = self.encoder_q.dst(q, k=k)

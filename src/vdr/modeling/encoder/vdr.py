@@ -99,6 +99,8 @@ class VDREncoder(PreTrainedModel):
         k: int = None,
         bow: bool = False, 
         training: bool = False,
+        to_cpu: bool = False,
+        return_numpy: bool = False,
         verbose: bool = False,
         **kwargs
     ) -> T:
@@ -114,6 +116,8 @@ class VDREncoder(PreTrainedModel):
                 - Otherwise, acitvate only top-k dimension. 
             bow (bool): If True, embeds texts into binary token representations.
             training (bool): If True, keeps gradients for backpropagation. 
+            to_cpu (bool): If True, moves the result to CPU memory.
+            return_numpy (bool): If True, returns a NumPy array instead of a Tensor.
             verbose (bool): If True, displays embedding progress. 
 
         Returns:
@@ -140,17 +144,24 @@ class VDREncoder(PreTrainedModel):
                     batch_emb = bow_mask
                 else:
                     batch_emb = self(**encoding)
-                    if k == 0: # acitvate dimension of presented token only
+                    if k == 0: 
+                        # Activating only dimensions corresponding to presented tokens
                         topk_mask = torch.zeros_like(batch_emb)
-                    elif k == None or k == -1: # acitvate all dimensions
+                    elif k == None or k == -1: 
+                        # Acitvate all dimensions
                         topk_mask = torch.ones_like(batch_emb)
-                    else: # acitvate top-k dimensions
+                    else: 
+                        # Acitvate top-k dimensions
                         topk_mask = build_topk_mask(batch_emb, k)
                     mask = torch.logical_or(bow_mask, topk_mask)
                     batch_emb *= mask
 
                 batch_embs.append(batch_emb)
             emb = torch.cat(batch_embs, dim=0)
+            if return_numpy:
+                emb = emb.cpu().numpy()
+            elif to_cpu:
+                emb = emb.cpu()
         return emb
 
 
