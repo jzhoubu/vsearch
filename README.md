@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/jzhoubu/VDR/blob/master/LICENSE)
 [![Openreview](https://img.shields.io/badge/Openreview-red.svg)](https://openreview.net/forum?id=ZlQRiFmq7Y)
 [![Demo](https://img.shields.io/badge/Demo-Brightgreen.svg)](https://jzhoubu.github.io/vdr.github.io/)
-[![Playground](https://img.shields.io/badge/Playground-purple.svg)](https://213d263f274c6b8329.gradio.live)
+[![Playground](https://img.shields.io/badge/Playground-purple.svg)](https://b6156940ffeccd05a0.gradio.live/)
 
 
 This is the official repository for VDR: [Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y)
@@ -16,7 +16,7 @@ This is the official repository for VDR: [Retrieval-based Disentangled Represent
 -->
 
 ## What's News 🔥
-- Apr, 2024: We launch an online **[playground](https://213d263f274c6b8329.gradio.live)** 🎮 for VDR. Come and explore it! 
+- Apr, 2024: We launch an online **[playground](https://b6156940ffeccd05a0.gradio.live/)** 🎮 for VDR image disentanglement. Come and explore it!
 - Feb, 2024: VDR: [Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y) has been accepted as a spotlight at ICLR2024.
 
 
@@ -203,7 +203,7 @@ During training, we present an `Info Card` to monitor the progress of the traini
 
 
 ## 🍉 Citation
-If you find our code, models, or the paper useful, please cite the paper:
+If you find this repository useful, please consider giving ⭐ and citing our paper:
 ```
 @inproceedings{
 zhou2024retrievalbased,
