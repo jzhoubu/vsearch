@@ -16,8 +16,9 @@ This is the official repository for VDR: [Retrieval-based Disentangled Represent
 -->
 
 ## What's News 🔥
-- Apr, 2024: We launch an online **[playground](https://b6156940ffeccd05a0.gradio.live/)** 🎮 for VDR image disentanglement. Come and explore it!
-- Feb, 2024: VDR: [Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y) has been accepted as a spotlight at ICLR2024.
+- 2024/05/06: SVDR: [Semi-Parametric Retrieval via Binary Token Index](https://arxiv.org/pdf/2405.01924) has been released on arXiv. SVDR reduces the indexing time and cost to meet various RAG scenarios.
+- 2024/04/29: We launch an online **[playground](https://b6156940ffeccd05a0.gradio.live/)** 🎮 for VDR image disentanglement. Come and explore it!
+- 2024/01/16: VDR: [Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y) has been accepted as a spotlight at ICLR2024.
 
 
 
@@ -32,6 +33,7 @@ This is the official repository for VDR: [Retrieval-based Disentangled Represent
     - [Cross-modal Retrieval](#cross-modal-retrieval)
     - [Disentanglement and Reasoning](#disentanglement-and-reasoning)
     - [Visualization](#visualization)
+    - [Semi-Parametric Search](#semi-parametric-search)
 
 
 ## 💻 Preparation
@@ -96,6 +98,9 @@ During training, we present an `Info Card` to monitor the progress of the traini
 
 ## 🚀 Quick Start
 
+<details>
+<summary>Text-to-text Retrieval</summary>
+
 ### Text-to-text Retrieval
 ```python
 >>> import torch
@@ -128,6 +133,11 @@ During training, we present an `Info Card` to monitor the progress of the traini
 # Output: 
 # tensor([[91.1257, 17.6930, 13.0358, 12.4576]], device='cuda:0')
 ```
+</details>
+
+
+<details>
+<summary>Cross-modal Retrieval</summary>
 
 ### Cross-modal Retrieval
 ```python
@@ -149,7 +159,11 @@ During training, we present an `Info Card` to monitor the progress of the traini
 # Output: 
 # tensor([[0.3209, 0.0984]])
 ```
+</details>
 
+
+<details>
+<summary>Disentanglement and Reasoning</summary>
 
 ### Disentanglement and Reasoning
 ```python
@@ -177,10 +191,12 @@ During training, we present an `Info Card` to monitor the progress of the traini
 #     ...
 # }
 ```
+</details>
 
+<details>
+<summary>Semi-Parametric Search</summary>
 
-<!--
-### Example: Semi-parametric Search
+### Semi-Parametric Search
 ```python
 # Alpha search (non-parametric query -> parametric passage)
 >>> q_bin = vdr.encoder_q.embed(query, bow=True)
@@ -192,7 +208,10 @@ During training, we present an `Info Card` to monitor the progress of the traini
 >>> p_bin = vdr.encoder_p.embed(passages, bow=True)
 >>> scores = q_emb @ p_bin.t()
 ```
--->
+</details>
+
+<details>
+<summary>Visualization</summary>
 
 ### Visualization
 
@@ -200,7 +219,7 @@ During training, we present an `Info Card` to monitor the progress of the traini
     <img src="examples/images/visual.png" width="100%" height="100%">
 </div>
 
-
+</details>
 
 ## 🍉 Citation
 If you find this repository useful, please consider giving ⭐ and citing our paper:
