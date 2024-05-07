@@ -5,9 +5,12 @@
 [![Demo](https://img.shields.io/badge/Demo-Brightgreen.svg)](https://jzhoubu.github.io/vdr.github.io/)
 [![Playground](https://img.shields.io/badge/Playground-purple.svg)](https://b6156940ffeccd05a0.gradio.live/)
 
+Disentangling representations of real-world objects over LM vocabulary to achieve stable, explainable, and transparent inforamtion retrieval and beyond.
 
-This is the official repository for VDR: [Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y)
 
+This is the official repository for:
+- VDR: [Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y)
+- SVDR: [Semi-Parametric Retrieval via Binary Token Index](https://arxiv.org/pdf/2405.01924)
 
 <!--
 <div align=center>
@@ -16,9 +19,13 @@ This is the official repository for VDR: [Retrieval-based Disentangled Represent
 -->
 
 ## What's News 🔥
-- 2024/05/06: SVDR: [Semi-Parametric Retrieval via Binary Token Index](https://arxiv.org/pdf/2405.01924) has been released on arXiv. SVDR reduces the indexing time and cost to meet various RAG scenarios.
-- 2024/04/29: We launch an online **[playground](https://b6156940ffeccd05a0.gradio.live/)** 🎮 for VDR image disentanglement. Come and explore it!
-- 2024/01/16: VDR: [Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y) has been accepted as a spotlight at ICLR2024.
+- 2024-05-08: Release 
+- 2024-05-06: SVDR: [Semi-Parametric Retrieval via Binary Token Index](https://arxiv.org/pdf/2405.01924) has been released on arXiv. 
+
+*SVDR reduces the indexing time and cost to meet various scenarios, making powerful retrieval-augmented applications accessible to everyone.*.
+
+- 2024-04-29: We launch an online **[playground](https://b6156940ffeccd05a0.gradio.live/)** 🎮 for VDR image disentanglement. Come and explore it!
+- 2024-01-16: VDR: [Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y) has been accepted as a spotlight at ICLR2024.
 
 
 
@@ -26,17 +33,26 @@ This is the official repository for VDR: [Retrieval-based Disentangled Represent
 
 1. [Preparation](#-preparation)
     1. [Setup Environment](#setup-environment-via-poetry)
-    2. [Download Data](#download-data)
+    2. Download Data
 
 2. [Quick Start](#-quick-start)
-    - [Text-to-text Retrieval](#text-to-text-retrieval)
-    - [Cross-modal Retrieval](#cross-modal-retrieval)
-    - [Disentanglement and Reasoning](#disentanglement-and-reasoning)
-    - [Visualization](#visualization)
-    - [Semi-Parametric Search](#semi-parametric-search)
+    - Text-to-text Retrieval
+    - Cross-modal Retrieval
+    - Disentanglement and Reasoning
+    - Visualization
+    - Semi-Parametric Search
 
+3. [Pipeline]
+    - Training (working on it 🔧)
+    - [Inference](#inference)
+        - Build index
+        - Search
+        - Scoring
 
 ## 💻 Preparation
+<!--
+TODA: CUDA versions test
+-->
 
 ### Setup Environment via poetry
 
@@ -55,7 +71,8 @@ conda activate vdr
 pip install -r requirements.txt
 ```
 
-### Download Data
+<details>
+<summary>Download Data</summary>
 
 Download data using identifiers in the YAML configuration files at `conf/data_stores/*.yaml`.
 
@@ -67,14 +84,19 @@ python download.py nq_train trivia_train
 # Download all dataset files:
 python download.py all
 ```
+</details>
 
-### Test
+
+<details>
+<summary>Testing</summary>
+
 ```bash
 python -m examples.demo.quick_start
 # Expected Ouput:
 # tensor([[91.1257, 17.6930, 13.0358, 12.4576]], device='cuda:0')
 # tensor([[0.3209, 0.0984]])
 ```
+</details>
 
 <!--
 ## 👾 Training
@@ -101,7 +123,6 @@ During training, we present an `Info Card` to monitor the progress of the traini
 <details>
 <summary>Text-to-text Retrieval</summary>
 
-### Text-to-text Retrieval
 ```python
 >>> import torch
 >>> from src.vdr import Retriever
@@ -139,7 +160,6 @@ During training, we present an `Info Card` to monitor the progress of the traini
 <details>
 <summary>Cross-modal Retrieval</summary>
 
-### Cross-modal Retrieval
 ```python
 # Note: we use `encoder_q` for text and `encoder_p` for image
 >>> vdr_cross_modal = Retriever.from_pretrained("vsearch/vdr-cross-modal") 
@@ -165,7 +185,7 @@ During training, we present an `Info Card` to monitor the progress of the traini
 <details>
 <summary>Disentanglement and Reasoning</summary>
 
-### Disentanglement and Reasoning
+### Data Disentanglement
 ```python
 # Disentangling query embedding
 >>> disentanglement = vdr_text2text.encoder_q.dst(query, k=768, visual=True) # Generate a word cloud if `visual`=True
@@ -178,7 +198,10 @@ During training, we present an `Info Card` to monitor the progress of the traini
 #     'bitter': 4.233378887176514,
 #     ...
 # }
+```
 
+### Retrieval Reasoning
+```python
 # Retrieval reasoning on query-passage match
 >>> reasons = vdr_text2text.explain(q=query, p=passages[0], k=768, visual=True)
 >>> print(reasons)
@@ -196,14 +219,17 @@ During training, we present an `Info Card` to monitor the progress of the traini
 <details>
 <summary>Semi-Parametric Search</summary>
 
-### Semi-Parametric Search
+### Alpha search
 ```python
-# Alpha search (non-parametric query -> parametric passage)
+# non-parametric query -> parametric passage
 >>> q_bin = vdr.encoder_q.embed(query, bow=True)
 >>> p_emb = vdr.encoder_p.embed(passages)
 >>> scores = q_bin @ p_emb.t()
+```
 
-# Beta search (parametric query -> non-parametric passage)
+### Beta search
+```python
+# parametric query -> non-parametric passage (binary token index)
 >>> q_emb = vdr.encoder_q.embed(query)
 >>> p_bin = vdr.encoder_p.embed(passages, bow=True)
 >>> scores = q_emb @ p_bin.t()
@@ -213,13 +239,42 @@ During training, we present an `Info Card` to monitor the progress of the traini
 <details>
 <summary>Visualization</summary>
 
-### Visualization
-
 <div align=center>
     <img src="examples/images/visual.png" width="100%" height="100%">
 </div>
 
 </details>
+
+
+<!--
+## Pipelines
+
+### Training
+
+```bash
+EXPERIMENT_NAME=test
+python -m torch.distributed.launch --nnodes=1 --nproc_per_node=4 train_vdr.py \
+hydra.run.dir=./experiments/${EXPERIMENT_NAME}/train \
+train=vdr_nq \
+data_stores=train_datasets \
+train_datasets=[nq_train]
+```
+- `hydra.run.dir`: Specifies the directory where training outputs will be saved
+- `train`: Identifier for the training config, which corresponds to a specific file located in conf/train/*.yaml.
+- `data_stores`: Identifier for the datastore, found in conf/data_stores/*.yaml.
+- train_datasets: List of identifiers for the training datasets to be used.
+
+During training, we display `Info Card` to monitor progress for stable and transparent training. For a better understanding of the `Info Card`, please refer to the documentation available [here](https://github.com/jzhoubu/VDR/tree/master/docs/info_card).
+
+
+### Inference
+<details>
+<summary>Build Index</summary>
+
+
+
+</details>
+-->
 
 ## 🍉 Citation
 If you find this repository useful, please consider giving ⭐ and citing our paper:
