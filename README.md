@@ -339,13 +339,11 @@ python -m inference.search.beta_search \
 ## 🍉 Citation
 If you find this repository useful, please consider giving ⭐ and citing our paper:
 ```
-@inproceedings{
-zhou2024retrievalbased,
-title={Retrieval-based Disentangled Representation Learning with Natural Language Supervision},
-author={Jiawei Zhou and Xiaoguang Li and Lifeng Shang and Xin Jiang and Qun Liu and Lei Chen},
-booktitle={The Twelfth International Conference on Learning Representations},
-year={2024},
-url={https://openreview.net/forum?id=ZlQRiFmq7Y}
+@inproceedings{zhou2023retrieval,
+  title={Retrieval-based Disentangled Representation Learning with Natural Language Supervision},
+  author={Zhou, Jiawei and Li, Xiaoguang and Shang, Lifeng and Jiang, Xin and Liu, Qun and Chen, Lei},
+  booktitle={The Twelfth International Conference on Learning Representations},
+  year={2023}
 }
 ```
 ```
