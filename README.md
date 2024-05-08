@@ -304,6 +304,7 @@ Parameters:
 
 <details>
 <summary>Search</summary>
+
 ```bash
 python -m inference.search.beta_search \
         --checkpoint=vsearch/vdr-nq \
@@ -318,6 +319,7 @@ python -m inference.search.beta_search \
 
 <details>
 <summary>Scoring for Wiki21m </summary>
+
 ```bash
 python -m inference.search.beta_search \
         --checkpoint=vsearch/vdr-nq \
