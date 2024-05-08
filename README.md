@@ -23,11 +23,10 @@ This is the official repository for:
 - 2024-05-06: SVDR: [Semi-Parametric Retrieval via Binary Token Index](https://arxiv.org/pdf/2405.01924) has been released on arXiv. <br>
 *SVDR reduces the indexing time and cost to meet various scenarios, making powerful retrieval-augmented applications accessible to everyone.*
 <div align=center>
-    <img src="docs/images/svdr-fig1.png" width="100%" height="100%">
+    <img src="docs/images/home/svdr-fig1.png" width="100%" height="100%">
 </div>
 - 2024-04-29: We launch an online **[playground](https://b6156940ffeccd05a0.gradio.live/)** 🎮 for VDR image disentanglement. Come and explore it!
 - 2024-01-16: VDR: [Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y) has been accepted as a spotlight at ICLR2024.
-
 
 
 ## 🗺 Overview
@@ -44,12 +43,12 @@ This is the official repository for:
     - Visualization
     - Semi-Parametric Search
 
-3. [Pipeline]
-    - Training (in development 🔧, expected to be released soon)
-    - [Inference](#inference)
-        - Build index
-        - Search
-        - Scoring
+3. [Training](#training) (in development 🔧, expected to be released soon)
+
+4. [Inference](#inference)
+    - Build index
+    - Search
+    - Scoring
 
 ## 💻 Preparation
 <!--
@@ -248,7 +247,7 @@ During training, we present an `Info Card` to monitor the progress of the traini
 <summary>Visualization</summary>
 
 <div align=center>
-    <img src="docs/images/home.png" width="100%" height="100%">
+    <img src="docs/images/home/visual.png" width="100%" height="100%">
 </div>
 
 </details>
@@ -275,7 +274,11 @@ train_datasets=[nq_train]
 During training, we display `Info Card` to monitor progress for stable and transparent training. For a better understanding of the `Info Card`, please refer to the documentation available [here](https://github.com/jzhoubu/VDR/tree/master/docs/info_card).
 -->
 
-### Inference
+## Training
+In development 🔧, expected to be released soon.
+
+
+## Inference
 <details>
 <summary>Build Index</summary>
 
@@ -301,7 +304,7 @@ Parameters:
 
 <details>
 <summary>Search</summary>
-
+```bash
 python -m inference.search.beta_search \
         --checkpoint=vsearch/vdr-nq \
         --query_file="path/to/your/query_file.jsonl" \
@@ -309,13 +312,13 @@ python -m inference.search.beta_search \
         --index_file="path/to/your/output_index.npz" \
         --save_file="path/to/your/output_result.json"  \
         --device=cuda
-
+```
 </details>
 
 
 <details>
 <summary>Scoring for Wiki21m </summary>
-
+```bash
 python -m inference.search.beta_search \
         --checkpoint=vsearch/vdr-nq \
         --query_file="path/to/your/query_file.jsonl" \
@@ -323,7 +326,7 @@ python -m inference.search.beta_search \
         --index_file="path/to/your/output_index.npz" \
         --save_file="path/to/your/output_result.json"  \
         --device=cuda
-
+```
 </details>
 
 
