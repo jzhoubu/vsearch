@@ -5,7 +5,7 @@
 [![Demo](https://img.shields.io/badge/Demo-Brightgreen.svg)](https://jzhoubu.github.io/vdr.github.io/)
 [![Playground](https://img.shields.io/badge/Playground-purple.svg)](https://b6156940ffeccd05a0.gradio.live/)
 
-Disentangling representations of real-world objects over LM vocabulary to achieve stable, explainable, and transparent inforamtion retrieval and beyond.
+Disentangling Anything over LM vocabulary for search.
 
 
 This is the official repository for:
@@ -19,11 +19,12 @@ This is the official repository for:
 -->
 
 ## What's News 🔥
-- 2024-05-08: Release 
-- 2024-05-06: SVDR: [Semi-Parametric Retrieval via Binary Token Index](https://arxiv.org/pdf/2405.01924) has been released on arXiv. 
-
-*SVDR reduces the indexing time and cost to meet various scenarios, making powerful retrieval-augmented applications accessible to everyone.*.
-
+- 2024-05-08: Launch SVDR inference pipeline for efficient, low-resource, large-scale retrieval.
+- 2024-05-06: SVDR: [Semi-Parametric Retrieval via Binary Token Index](https://arxiv.org/pdf/2405.01924) has been released on arXiv. <br>
+*SVDR reduces the indexing time and cost to meet various scenarios, making powerful retrieval-augmented applications accessible to everyone.*
+<div align=center>
+    <img src="docs/images/svdr-fig1.png" width="100%" height="100%">
+</div>
 - 2024-04-29: We launch an online **[playground](https://b6156940ffeccd05a0.gradio.live/)** 🎮 for VDR image disentanglement. Come and explore it!
 - 2024-01-16: VDR: [Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y) has been accepted as a spotlight at ICLR2024.
 
@@ -32,8 +33,9 @@ This is the official repository for:
 ## 🗺 Overview
 
 1. [Preparation](#-preparation)
-    1. [Setup Environment](#setup-environment-via-poetry)
-    2. Download Data
+    - Setup Environment
+    - Download Data
+    - Testing
 
 2. [Quick Start](#-quick-start)
     - Text-to-text Retrieval
@@ -43,7 +45,7 @@ This is the official repository for:
     - Semi-Parametric Search
 
 3. [Pipeline]
-    - Training (working on it 🔧)
+    - Training (in development 🔧, expected to be released soon)
     - [Inference](#inference)
         - Build index
         - Search
@@ -53,6 +55,10 @@ This is the official repository for:
 <!--
 TODA: CUDA versions test
 -->
+
+
+<details>
+<summary>Setup Environment</summary>
 
 ### Setup Environment via poetry
 
@@ -70,6 +76,8 @@ conda create -n vdr python=3.9
 conda activate vdr
 pip install -r requirements.txt
 ```
+
+</details>
 
 <details>
 <summary>Download Data</summary>
@@ -240,7 +248,7 @@ During training, we present an `Info Card` to monitor the progress of the traini
 <summary>Visualization</summary>
 
 <div align=center>
-    <img src="examples/images/visual.png" width="100%" height="100%">
+    <img src="docs/images/home.png" width="100%" height="100%">
 </div>
 
 </details>
@@ -265,16 +273,60 @@ train_datasets=[nq_train]
 - train_datasets: List of identifiers for the training datasets to be used.
 
 During training, we display `Info Card` to monitor progress for stable and transparent training. For a better understanding of the `Info Card`, please refer to the documentation available [here](https://github.com/jzhoubu/VDR/tree/master/docs/info_card).
-
+-->
 
 ### Inference
 <details>
 <summary>Build Index</summary>
 
-
+### Build a Binary Token Index
+To construct a binary token index for text corpus:
+```bash
+python -m inference.build_index.build_binary_index \
+        --text_file="path/to/your/corpus_file.jsonl" \
+        --save_file="path/to/your/output_index.npz" \
+        --batch_size=256 \
+        --num_shift=999 \
+        --max_len=256
+```
+Parameters:
+- `--text_file`: Specifies the path to the corpus file to be indexed (.jsonl format).
+- `--save_file`: Specifies the path where the index file will be saved (.npz format).
+- `--batch_size`: batch size for processing.
+- `--num_shift`: Allows for shifting the vocabulary token IDs by a specified amount.
+- `--max_len`: Specifies the maximum length for tokenization of the documents. 
 
 </details>
--->
+
+
+<details>
+<summary>Search</summary>
+
+python -m inference.search.beta_search \
+        --checkpoint=vsearch/vdr-nq \
+        --query_file="path/to/your/query_file.jsonl" \
+        --text_file="path/to/your/corpus_file.jsonl" \
+        --index_file="path/to/your/output_index.npz" \
+        --save_file="path/to/your/output_result.json"  \
+        --device=cuda
+
+</details>
+
+
+<details>
+<summary>Scoring for Wiki21m </summary>
+
+python -m inference.search.beta_search \
+        --checkpoint=vsearch/vdr-nq \
+        --query_file="path/to/your/query_file.jsonl" \
+        --text_file="path/to/your/corpus_file.jsonl" \
+        --index_file="path/to/your/output_index.npz" \
+        --save_file="path/to/your/output_result.json"  \
+        --device=cuda
+
+</details>
+
+
 
 ## 🍉 Citation
 If you find this repository useful, please consider giving ⭐ and citing our paper:
@@ -288,6 +340,13 @@ year={2024},
 url={https://openreview.net/forum?id=ZlQRiFmq7Y}
 }
 ```
-
+```
+@article{zhou2024semi,
+  title={Semi-Parametric Retrieval via Binary Token Index},
+  author={Zhou, Jiawei and Dong, Li and Wei, Furu and Chen, Lei},
+  journal={arXiv preprint arXiv:2405.01924},
+  year={2024}
+}
+```
 ## License
 `VDR` is licensed under the terms of the MIT license. See LICENSE for more details.
