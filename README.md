@@ -44,9 +44,9 @@ This is the official repository for:
     - Visualization
     - Semi-Parametric Search
 
-3. [Training](#training) (in development 🔧, expected to be released soon)
+3. [Training](#-training) (in development 🔧, expected to be released soon)
 
-4. [Inference](#inference)
+4. [Inference](#-inference)
     - Build index
     - Search
     - Scoring
@@ -275,15 +275,13 @@ train_datasets=[nq_train]
 During training, we display `Info Card` to monitor progress for stable and transparent training. For a better understanding of the `Info Card`, please refer to the documentation available [here](https://github.com/jzhoubu/VDR/tree/master/docs/info_card).
 -->
 
-## Training
+## 👾 Training
 In development 🔧, expected to be released soon.
 
 
-## Inference
-<details>
-<summary>Build Index</summary>
+## 🎮 Inference
 
-### Build a Binary Token Index
+### 1. Build a Binary Token Index
 To construct a binary token index for text corpus:
 ```bash
 python -m inference.build_index.build_binary_index \
@@ -300,13 +298,8 @@ Parameters:
 - `--num_shift`: Allows for shifting the vocabulary token IDs by a specified amount.
 - `--max_len`: Specifies the maximum length for tokenization of the documents. 
 
-</details>
 
-
-<details>
-<summary>Search</summary>
-
-### Beta Search on Binary Token Index
+### 2. Beta Search on Binary Token Index
 ```bash
 python -m inference.search.beta_search \
         --checkpoint=vsearch/vdr-nq \
@@ -316,13 +309,9 @@ python -m inference.search.beta_search \
         --save_file="path/to/your/output_result.json"  \
         --device=cuda
 ```
-</details>
 
 
-<details>
-<summary>Scoring</summary>
-
-### Scoring on Wiki21m benchmark
+### 3. Scoring on Wiki21m benchmark
 ```bash
 python -m inference.search.beta_search \
         --checkpoint=vsearch/vdr-nq \
@@ -332,9 +321,6 @@ python -m inference.search.beta_search \
         --save_file="path/to/your/output_result.json"  \
         --device=cuda
 ```
-</details>
-
-
 
 ## 🍉 Citation
 If you find this repository useful, please consider giving ⭐ and citing our paper:
