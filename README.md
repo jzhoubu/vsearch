@@ -25,7 +25,8 @@ This is the official repository for:
 <div align=center>
     <img src="docs/images/home/svdr-fig1.png" width="100%" height="100%">
 </div>
-- 2024-04-29: We launch an online **[playground](https://b6156940ffeccd05a0.gradio.live/)** 🎮 for VDR image disentanglement. Come and explore it!
+
+- 2024-04-29: We launch an online [playground](https://b6156940ffeccd05a0.gradio.live/) 🎮 for VDR image disentanglement. Come and explore it!
 - 2024-01-16: VDR: [Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y) has been accepted as a spotlight at ICLR2024.
 
 
