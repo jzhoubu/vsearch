@@ -306,6 +306,7 @@ Parameters:
 <details>
 <summary>Search</summary>
 
+### Beta Search on Binary Token Index
 ```bash
 python -m inference.search.beta_search \
         --checkpoint=vsearch/vdr-nq \
@@ -319,8 +320,9 @@ python -m inference.search.beta_search \
 
 
 <details>
-<summary>Scoring for Wiki21m </summary>
+<summary>Scoring</summary>
 
+### Scoring on Wiki21m benchmark
 ```bash
 python -m inference.search.beta_search \
         --checkpoint=vsearch/vdr-nq \
