@@ -1,17 +1,30 @@
 # VDR: Vocabulary Disentangled Retriever
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/jzhoubu/VDR/blob/master/LICENSE)
-[![Openreview](https://img.shields.io/badge/Openreview-red.svg)](https://openreview.net/forum?id=ZlQRiFmq7Y)
-[![Demo](https://img.shields.io/badge/Demo-Brightgreen.svg)](https://jzhoubu.github.io/vdr.github.io/)
-[![Playground](https://img.shields.io/badge/Playground-purple.svg)](https://b6156940ffeccd05a0.gradio.live/)
 
-Disentangling Anything over LM vocabulary for search.
-
+Disentangling Anything over LM vocabulary space for search.
 
 This is the official repository for:
 - VDR: [Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y)
-- SVDR: [Semi-Parametric Retrieval via Binary Token Index](https://arxiv.org/pdf/2405.01924)
+    <details>
+    <summary>Click to see details.</summary>
+    <div>
+    <a href="https://openreview.net/forum?id=ZlQRiFmq7Y"><img src="https://img.shields.io/badge/Openreview-red.svg" alt="Openreview"></a>
+    <a href="https://jzhoubu.github.io/vdr.github.io/"><img src="https://img.shields.io/badge/Demo-Brightgreen.svg" alt="Demo"></a>
+    <a href="https://b6156940ffeccd05a0.gradio.live/"><img src="https://img.shields.io/badge/Playground-purple.svg" alt="Playground"></a>
+    </div>
+  </details>
 
+- SVDR: [Semi-Parametric Retrieval via Binary Token Index](https://arxiv.org/pdf/2405.01924)
+  <details>
+    <summary>Click to see details.</summary>
+    <div style="font-style: italic;">
+    SVDR reduces the indexing time and cost to meet various scenarios, making powerful retrieval-augmented applications accessible to everyone.
+    </div>
+    <div align="center">
+        <img src="docs/images/home/svdr-fig1.png" width="100%" height="100%">
+    </div>
+  </details>
 <!--
 <div align=center>
     <img src="examples/images/vdr-cover.png" width="70%" height="70%">
@@ -19,15 +32,9 @@ This is the official repository for:
 -->
 
 ## What's News 🔥
-- 2024-05-08: Launch SVDR inference pipeline for efficient, low-resource, large-scale retrieval.
-- 2024-05-06: SVDR: [Semi-Parametric Retrieval via Binary Token Index](https://arxiv.org/pdf/2405.01924) has been released on arXiv. <br>
-*SVDR reduces the indexing time and cost to meet various scenarios, making powerful retrieval-augmented applications accessible to everyone.*
-<div align=center>
-    <img src="docs/images/home/svdr-fig1.png" width="100%" height="100%">
-</div>
-
-- 2024-04-29: We launch an online [playground](https://b6156940ffeccd05a0.gradio.live/) 🎮 for VDR image disentanglement. Come and explore it!
-- 2024-01-16: VDR: [Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y) has been accepted as a spotlight at ICLR2024.
+- 2024-05-08: We launched a semi-parametric inference pipeline (for low-resource, efficient, large-scale retrieval).
+- 2024-05-06: SVDR: [Semi-Parametric Retrieval via Binary Token Index](https://arxiv.org/pdf/2405.01924) has been published on arXiv. 
+- 2024-01-16: VDR: [Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y) was accepted as a spotlight at ICLR2024.
 
 
 ## 🗺 Overview
@@ -305,21 +312,18 @@ python -m inference.search.beta_search \
         --checkpoint=vsearch/vdr-nq \
         --query_file="path/to/your/query_file.jsonl" \
         --text_file="path/to/your/corpus_file.jsonl" \
-        --index_file="path/to/your/output_index.npz" \
-        --save_file="path/to/your/output_result.json"  \
+        --index_file="path/to/your/index_file.npz" \
+        --save_file="path/to/your/search_result.json"  \
         --device=cuda
 ```
 
 
 ### 3. Scoring on Wiki21m benchmark
 ```bash
-python -m inference.search.beta_search \
-        --checkpoint=vsearch/vdr-nq \
-        --query_file="path/to/your/query_file.jsonl" \
+python -m inference.score.eval_wiki21m \
         --text_file="path/to/your/corpus_file.jsonl" \
-        --index_file="path/to/your/output_index.npz" \
-        --save_file="path/to/your/output_result.json"  \
-        --device=cuda
+        --result_file="path/to/your/search_result.json" \
+        --qa_file="path/to/your/dpr_qa_file.csv"
 ```
 
 ## 🍉 Citation
