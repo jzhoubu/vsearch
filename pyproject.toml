@@ -17,15 +17,14 @@ spicy = "^0.16.0"
 wordcloud = "^1.9.3"
 pynvml = "^11.5.0"
 chardet = "^5.2.0"
-transformers = "4.39.3"
 huggingface-hub = "^0.22.2"
+pytrec-eval-terrier = "0.5.1"
+transformers = "^4.40.2"
 
 [tool.poetry.group.dev.dependencies]
 jupyter = "^1.0.0"
 gradio = "^4.26.0"
-mteb = "^1.7.11"
 faiss-gpu = "^1.7.2"
-pytrec-eval = "^0.5"
 beir = "^2.0.0"
 
 [build-system]
