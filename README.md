@@ -5,8 +5,7 @@
 
 **Vsearch**: Disentangling Data on LM <u>**V**</u>ocabulary Space for <u>**Search**</u>. 
 
-Vsearch is an extensible, trainable toolbox for retrieval-augmented frameworks, designed to be user-friendly, efficient, and accessible, empowering individuals to customize and deploy their own RAG applications.
-
+An extensible, transparent, trainable toolbox for retrieval-augmented frameworks, designed to be user-friendly, efficient, and accessible, empowering individuals to customize and deploy their own retrieval-based applications.
 
 
 This repository includes:
@@ -248,29 +247,8 @@ python -m examples.demo.quick_start
 </details>
 
 
-<!--
-## Pipelines
-
-### Training
-
-```bash
-EXPERIMENT_NAME=test
-python -m torch.distributed.launch --nnodes=1 --nproc_per_node=4 train_vdr.py \
-hydra.run.dir=./experiments/${EXPERIMENT_NAME}/train \
-train=vdr_nq \
-data_stores=train_datasets \
-train_datasets=[nq_train]
-```
-- `hydra.run.dir`: Specifies the directory where training outputs will be saved
-- `train`: Identifier for the training config, which corresponds to a specific file located in conf/train/*.yaml.
-- `data_stores`: Identifier for the datastore, found in conf/data_stores/*.yaml.
-- train_datasets: List of identifiers for the training datasets to be used.
-
-During training, we display `Info Card` to monitor progress for stable and transparent training. For a better understanding of the `Info Card`, please refer to the documentation available [here](https://github.com/jzhoubu/VDR/tree/master/docs/info_card).
--->
-
 ## 👾 Training
-We are testing on python `3.9` and torch `2.2.1`. Configuration management is handled through `hydra`.
+We are testing on python `3.9` and torch `2.2.1`. Configuration is handled through `hydra==1.3.2`.
 
 ```bash
 EXPERIMENT_NAME=test
@@ -285,7 +263,30 @@ train_datasets=[nq_train]
 - `--data_stores`: Identifier for the datastore, in `conf/data_stores/*.yaml`.
 - `--train_datasets`: List of identifiers for the training datasets to be used, in `data_stores`
 
-During training, we display `Info Card` to monitor the training progress. See details of `Info Card` [here](https://github.com/jzhoubu/VDR/tree/master/docs/info_card).
+During training, we display `InfoCard` to monitor the training progress. 
+
+> [!TIP]
+> <details><summary>What is InfoCard?</summary>  
+> An `InfoCard` is a organized log generated during the training that helps us visually track the progress.  
+> An `InfoCard` looks like this:
+> <img src="docs/images/home/infocard.jpg" width="100%" height="100%">
+> 
+> **InfoCard Layout:**
+> 
+> 1. **Global Variables (`v_q_global`, `v_p_global`, etc.):**
+>    - **Shape**: Displays the dimensions of the variable matrix.
+>    - **Gate**: Indicates the sparsity by showing the ratio of non-zero activations.
+>    - **Mean, Max, Min**: Statistical measures of the data distribution within the variable.
+> 
+> 2. **EXAMPLE Section**:
+>    - Contains one sample from the training batch, including query text (`Q_TEXT`), positive passages (`P_TEXT1`), negative passage (`P_TEXT2`), and the correct answer (`ANSWER`).
+> 
+> 3. **Token Triple Sections** (`v_q`, `v_p`, `v_p_neg`, `v_q * v_p`), which provided token-level impact:
+>    - **Token (`t`)**: The specific vocabulary token.
+>    - **Query Rank (`qrank`)**: Rank of the token in the query representation.
+>    - **Passage Rank (`prank`)**: Rank of the token in the passage representation.
+> </details>
+
 
 
 ## 🎮 Inference
