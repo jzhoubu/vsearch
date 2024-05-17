@@ -37,6 +37,7 @@ This repository includes:
 -->
 
 ## What's News 🔥
+- 2024-05-17: We launched the training code and pipeline.
 - 2024-05-08: We launched a semi-parametric inference pipeline (for low-resource, efficient, large-scale retrieval).
 - 2024-05-06: SVDR: [Semi-Parametric Retrieval via Binary Token Index](https://arxiv.org/pdf/2405.01924) has been published on arXiv.
 - 2024-01-16: VDR: [Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y) was accepted as a spotlight at ICLR2024.
@@ -64,10 +65,6 @@ This repository includes:
     - Scoring
 
 ## 💻 Preparation
-<!--
-TODA: CUDA versions test
--->
-
 
 <details>
 <summary>Setup Environment</summary>
@@ -271,6 +268,7 @@ During training, we display `InfoCard` to monitor the training progress.
 > The `InfoCard` is a organized log generated during the training that helps us visually track the progress.  
 > 
 > An `InfoCard` looks like this:
+>
 > <img src="docs/images/home/infocard.jpg" width="70%" height="70%">
 > 
 > **InfoCard Layout**
