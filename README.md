@@ -3,11 +3,13 @@
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/jzhoubu/VDR/blob/master/LICENSE)
 ![Python 3.9](https://img.shields.io/badge/python-3.9-green)
 
-**Vsearch**: Disentangling Multimodal Data on LM <u>**V**</u>ocabulary Space for <u>**Search**</u>. 
+**Vsearch**: Disentangling Data on LM <u>**V**</u>ocabulary Space for <u>**Search**</u>. 
 
-We're developing a tool that bridges Large Language Models (LLMs) 🤖 and real-world data 🌐, tailored for learnable RAG applications.
+Vsearch is an extensible, trainable toolbox for retrieval-augmented frameworks, designed to be user-friendly, efficient, and accessible, empowering individuals to customize and deploy their own RAG applications.
 
-This is the official repository include:
+
+
+This repository includes:
 - VDR: [Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y) 
   <details>
     <summary>Click to see details of VDR.</summary>
@@ -25,7 +27,7 @@ This is the official repository include:
     SVDR reduces the indexing time and cost to meet various scenarios, making powerful retrieval-augmented applications accessible to everyone.
     </div>
     <div align="center">
-        <img src="docs/images/home/svdr-fig1.png" width="100%" height="100%">
+        <img src="docs/images/home/svdr.png" width="100%" height="100%">
     </div>
   </details>
 
