@@ -1,23 +1,26 @@
-# VDR: Vocabulary Disentangled Retriever
+# Vsearch
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/jzhoubu/VDR/blob/master/LICENSE)
+![Python 3.9](https://img.shields.io/badge/python-3.9-green)
 
-Disentangling Anything over LM vocabulary space for search.
+**Vsearch**: Disentangling Multimodal Data on LM <u>**V**</u>ocabulary Space for <u>**Search**</u>. 
 
-This is the official repository for:
-- VDR: [Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y)
-    <details>
-    <summary>Click to see details.</summary>
+We're developing a tool that bridges Large Language Models (LLMs) 🤖 and real-world data 🌐, tailored for learnable RAG applications.
+
+This is the official repository include:
+- VDR: [Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y) 
+  <details>
+    <summary>Click to see details of VDR.</summary>
+    VDR disentangles multi-modal data on MLM vocabulary space for interpretable and effective multimodal retrieval model.
     <div>
     <a href="https://openreview.net/forum?id=ZlQRiFmq7Y"><img src="https://img.shields.io/badge/Openreview-red.svg" alt="Openreview"></a>
     <a href="https://jzhoubu.github.io/vdr.github.io/"><img src="https://img.shields.io/badge/Demo-Brightgreen.svg" alt="Demo"></a>
-    <a href="https://b6156940ffeccd05a0.gradio.live/"><img src="https://img.shields.io/badge/Playground-purple.svg" alt="Playground"></a>
     </div>
   </details>
 
 - SVDR: [Semi-Parametric Retrieval via Binary Token Index](https://arxiv.org/pdf/2405.01924)
   <details>
-    <summary>Click to see details.</summary>
+    <summary>Click to see details of SVDR. </summary>
     <div style="font-style: italic;">
     SVDR reduces the indexing time and cost to meet various scenarios, making powerful retrieval-augmented applications accessible to everyone.
     </div>
@@ -25,6 +28,7 @@ This is the official repository for:
         <img src="docs/images/home/svdr-fig1.png" width="100%" height="100%">
     </div>
   </details>
+
 <!--
 <div align=center>
     <img src="examples/images/vdr-cover.png" width="70%" height="70%">
@@ -33,7 +37,7 @@ This is the official repository for:
 
 ## What's News 🔥
 - 2024-05-08: We launched a semi-parametric inference pipeline (for low-resource, efficient, large-scale retrieval).
-- 2024-05-06: SVDR: [Semi-Parametric Retrieval via Binary Token Index](https://arxiv.org/pdf/2405.01924) has been published on arXiv. 
+- 2024-05-06: SVDR: [Semi-Parametric Retrieval via Binary Token Index](https://arxiv.org/pdf/2405.01924) has been published on arXiv.
 - 2024-01-16: VDR: [Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y) was accepted as a spotlight at ICLR2024.
 
 
@@ -49,7 +53,7 @@ This is the official repository for:
     - Cross-modal Retrieval
     - Disentanglement and Reasoning
     - Visualization
-    - Semi-Parametric Search
+    - Semi-parametric Search
 
 3. [Training](#-training) (in development 🔧, expected to be released soon)
 
@@ -67,7 +71,7 @@ TODA: CUDA versions test
 <details>
 <summary>Setup Environment</summary>
 
-### Setup Environment via poetry
+### Setup Environment via poetry (suggested)
 
 ```
 # install poetry first
@@ -112,25 +116,6 @@ python -m examples.demo.quick_start
 # tensor([[0.3209, 0.0984]])
 ```
 </details>
-
-<!--
-## 👾 Training
-
-```bash
-EXPERIMENT_NAME=test
-python -m torch.distributed.launch --nnodes=1 --nproc_per_node=4 train_vdr.py \
-hydra.run.dir=./experiments/$EXPERIMENT_NAME/train \
-train=vdr_nq \
-data_stores=train_datasets \
-train_datasets=[nq_train]
-```
-- `hydra.run.dir`:  directory where training outputs will be saved.
-- `train`: training configuration file in `conf/train/*.yaml`
-- `data_stores`: data configuration file in `conf/data_stores/*.yaml` 
-- `train_datasets`: identifiers of train dataset
-
-During training, we present an `Info Card` to monitor the progress of the training. To better under the `Info Card`, please refer to [here](https://github.com/jzhoubu/VDR/tree/master/docs/info_card).
--->
 
 
 ## 🚀 Quick Start
@@ -283,7 +268,22 @@ During training, we display `Info Card` to monitor progress for stable and trans
 -->
 
 ## 👾 Training
-In development 🔧, expected to be released soon.
+We are testing on python `3.9` and torch `2.2.1`. Configuration management is handled through `hydra`.
+
+```bash
+EXPERIMENT_NAME=test
+python -m torch.distributed.launch --nnodes=1 --nproc_per_node=4 train_vdr.py \
+hydra.run.dir=./experiments/${EXPERIMENT_NAME}/train \
+train=vdr_nq \
+data_stores=wiki21m \
+train_datasets=[nq_train]
+```
+- `--hydra.run.dir`: Directory where training logs and outputs will be saved
+- `--train`: Identifier for the training config,  in `conf/train/*.yaml`.
+- `--data_stores`: Identifier for the datastore, in `conf/data_stores/*.yaml`.
+- `--train_datasets`: List of identifiers for the training datasets to be used, in `data_stores`
+
+During training, we display `Info Card` to monitor the training progress. See details of `Info Card` [here](https://github.com/jzhoubu/VDR/tree/master/docs/info_card).
 
 
 ## 🎮 Inference
@@ -294,16 +294,16 @@ To construct a binary token index for text corpus:
 python -m inference.build_index.build_binary_index \
         --text_file="path/to/your/corpus_file.jsonl" \
         --save_file="path/to/your/output_index.npz" \
-        --batch_size=256 \
+        --batch_size=32 \
         --num_shift=999 \
         --max_len=256
 ```
 Parameters:
-- `--text_file`: Specifies the path to the corpus file to be indexed (.jsonl format).
-- `--save_file`: Specifies the path where the index file will be saved (.npz format).
-- `--batch_size`: batch size for processing.
+- `--text_file`: Path to the corpus file to be indexed (`.jsonl` format).
+- `--save_file`: Path where the index file will be saved (`.npz` format).
+- `--batch_size`: Batch size for processing.
 - `--num_shift`: Allows for shifting the vocabulary token IDs by a specified amount.
-- `--max_len`: Specifies the maximum length for tokenization of the documents. 
+- `--max_len`: Maximum length for tokenization of the documents. 
 
 
 ### 2. Beta Search on Binary Token Index
@@ -316,7 +316,14 @@ python -m inference.search.beta_search \
         --save_file="path/to/your/search_result.json"  \
         --device=cuda
 ```
-
+Parameters:
+- `--query_file`: Path to file containing questions, with each question as a separate line (`.jsonl` format). 
+- `--qa_file`: Path to DPR-provided qa file (`.csv` format). Required if `--query_file` is not provided.
+- `--text_file`: Path to the corpus file (`.jsonl` format).
+- `--index_file`: Path to pre-computed index file (`.npz` format).
+- `--save_file`: Path where the search results will be stored (`.json` format).
+- `--batch_size`: Number of queries per batch.
+- `--num_rerank`: Number of passages to re-rank.
 
 ### 3. Scoring on Wiki21m benchmark
 ```bash
@@ -325,6 +332,11 @@ python -m inference.score.eval_wiki21m \
         --result_file="path/to/your/search_result.json" \
         --qa_file="path/to/your/dpr_qa_file.csv"
 ```
+Parameters:
+- `--text_file`: Path to the corpus file (`.jsonl` format).
+- `--result_file`: Path to search results (`.json` format).
+- `--qa_file`: Path to DPR-provided qa file (`.csv` format)
+
 
 ## 🍉 Citation
 If you find this repository useful, please consider giving ⭐ and citing our paper:
