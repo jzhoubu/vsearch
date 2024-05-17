@@ -1,9 +1,0 @@
-nq_test:
-  _target_: src.vdr.data.biencoder_dataset.BiEncoderDataset
-  file: data/eval/nq-test.jsonl
-  download_link: https://huggingface.co/datasets/vsearch/nq/resolve/main/test.jsonl.gz
-
-trivia_test:
-  _target_: src.vdr.data.biencoder_dataset.BiEncoderDataset
-  file: data/eval/trivia-test.jsonl
-  download_link: https://huggingface.co/datasets/vsearch/tqa/resolve/main/test.jsonl.gz
