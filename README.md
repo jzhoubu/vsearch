@@ -266,25 +266,27 @@ train_datasets=[nq_train]
 During training, we display `InfoCard` to monitor the training progress. 
 
 > [!TIP]
-> <details><summary>What is InfoCard?</summary>  
-> An `InfoCard` is a organized log generated during the training that helps us visually track the progress.  
+> <details><summary>What is <b><span style="color: blue;">InfoCard</span></b>?</summary>
+>
+> The `InfoCard` is a organized log generated during the training that helps us visually track the progress.  
+> 
 > An `InfoCard` looks like this:
-> <img src="docs/images/home/infocard.jpg" width="100%" height="100%">
+> <img src="docs/images/home/infocard.jpg" width="70%" height="70%">
 > 
-> **InfoCard Layout:**
+> **InfoCard Layout**
 > 
-> 1. **Global Variables (`v_q_global`, `v_p_global`, etc.):**
->    - **Shape**: Displays the dimensions of the variable matrix.
->    - **Gate**: Indicates the sparsity by showing the ratio of non-zero activations.
->    - **Mean, Max, Min**: Statistical measures of the data distribution within the variable.
+> 1. Global Variables (`v_q_global`, `v_p_global`, etc.):
+>    - Shape: Displays the dimensions of the variable matrix.
+>    - Gate: Indicates the sparsity by showing the ratio of non-zero activations.
+>    - Mean, Max, Min: Statistical measures of the data distribution within the variable.
 > 
-> 2. **EXAMPLE Section**:
+> 2. `EXAMPLE` Section:
 >    - Contains one sample from the training batch, including query text (`Q_TEXT`), positive passages (`P_TEXT1`), negative passage (`P_TEXT2`), and the correct answer (`ANSWER`).
 > 
-> 3. **Token Triple Sections** (`v_q`, `v_p`, `v_p_neg`, `v_q * v_p`), which provided token-level impact:
->    - **Token (`t`)**: The specific vocabulary token.
->    - **Query Rank (`qrank`)**: Rank of the token in the query representation.
->    - **Passage Rank (`prank`)**: Rank of the token in the passage representation.
+> 3. Token Triple Sections (`v_q`, `v_p`, `v_p_neg`, `v_q * v_p`), which provided token-level impact:
+>    - Token (`t`): The specific vocabulary token.
+>    - Query Rank (`qrank`): Rank of the token in the query representation.
+>    - Passage Rank (`prank`): Rank of the token in the passage representation.
 > </details>
 
 
