@@ -196,9 +196,9 @@ class BiEncoder(PreTrainedModel):
         p_emb = self.encoder_p.embed(processed_corpus, batch_size, to_cpu=to_cpu, return_numpy=return_numpy, **kwargs)
         return p_emb
 
-    def explain(self, q, p, k=768, visual=False, visual_width=800, visual_height=800):
-        q_dst = self.encoder_q.dst(q, k=k)
-        p_dst = self.encoder_p.dst(p, k=k)
+    def explain(self, q, p, topk=768, visual=False, visual_width=800, visual_height=800):
+        q_dst = self.encoder_q.dst(q, topk=topk)
+        p_dst = self.encoder_p.dst(p, topk=topk)
         result_dict = {
             key: q_dst.get(key, 0) * p_dst.get(key, 0)
             for key in set(q_dst) | set(p_dst)
@@ -207,7 +207,7 @@ class BiEncoder(PreTrainedModel):
         sorted_keys = sorted(result_dict, key=result_dict.get, reverse=True)
         results = {key: result_dict[key] for key in sorted_keys}
         if visual:
-            wordcloud = WordCloud(max_words=k, width=visual_width, height=visual_height).generate_from_frequencies(results)
+            wordcloud = WordCloud(max_words=topk, width=visual_width, height=visual_height).generate_from_frequencies(results)
             plt.imshow(wordcloud, interpolation='bilinear')
             plt.axis("off")
             plt.tight_layout(pad=0)
