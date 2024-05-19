@@ -20,6 +20,7 @@ chardet = "^5.2.0"
 huggingface-hub = "^0.22.2"
 pytrec-eval-terrier = "0.5.1"
 transformers = "^4.40.2"
+jsonlines = "^4.0.0"
 
 [tool.poetry.group.dev.dependencies]
 jupyter = "^1.0.0"
