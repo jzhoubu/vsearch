@@ -18,8 +18,8 @@ passages = [
 ]
 
 # Embed the query and passages
-q_emb = vdr_text2text.encoder_q.embed(query)  # Shape: [1, V]
-p_emb = vdr_text2text.encoder_p.embed(passages)  # Shape: [4, V]
+q_emb = vdr_text2text.encoder_q.embed(query, topk=768)  # Shape: [1, V]
+p_emb = vdr_text2text.encoder_p.embed(passages, topk=768)  # Shape: [4, V]
 
 # Query-passage Relevance
 scores = q_emb @ p_emb.t()
@@ -36,8 +36,8 @@ texts = [
     "Four thousand Martian days after setting its wheels in Gale Crater on Aug. 5, 2012, NASA’s Curiosity rover remains busy conducting exciting science. The rover recently drilled its 39th sample then dropped the pulverized rock into its belly for detailed analysis.",
     "ChatGPT is a chatbot developed by OpenAI and launched on November 30, 2022. Based on a large language model, it enables users to refine and steer a conversation towards a desired length, format, style, level of detail, and language."
 ]
-image_emb = vdr_cross_modal.encoder_p.embed(image_file) # Shape: [1, V]
-text_emb = vdr_cross_modal.encoder_q.embed(texts)  # Shape: [2, V]
+image_emb = vdr_cross_modal.encoder_p.embed(image_file, topk=768) # Shape: [1, V]
+text_emb = vdr_cross_modal.encoder_q.embed(texts, topk=768)  # Shape: [2, V]
 
 # Image-text Relevance
 scores = image_emb @ text_emb.t()

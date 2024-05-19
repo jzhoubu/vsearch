@@ -78,11 +78,10 @@ class VDRTextEncoder(PreTrainedModel):
         texts: Union[List[str], str], 
         batch_size: int = 128, 
         max_len: int = None, 
-        k: int = None,
+        topk: int = None,
         bow: bool = False, 
         training: bool = False,
         verbose: bool = False,
-        **kwargs
     ) -> T:
         """Embeds texts into lexical representations.
 
@@ -90,9 +89,9 @@ class VDRTextEncoder(PreTrainedModel):
             texts (str, List[str]): Text or list of texts to be embedded.
             batch_size (int): Size of batches. Defaults to 128.
             max_len (int): Maximum sequence length.
-            k (int): Number of active dimensions after top-k sparsification. 
-                - If k=0, only activate the dimensions of the presented token;
-                - If k=-1 or None, activate all the dimensions;
+            topk (int): Number of active dimensions after top-k sparsification. 
+                - If topk=0, only activate the dimensions of the presented token;
+                - If topk=-1 or None, activate all the dimensions;
                 - Otherwise, acitvate only top-k dimension. 
             bow (bool): If True, embeds texts into binary token representations.
             training (bool): If True, keeps gradients for backpropagation. 
@@ -104,7 +103,7 @@ class VDRTextEncoder(PreTrainedModel):
         """
 
         max_len = max_len or self.config.max_len
-        k = k or self.config.topk
+        topk = topk or self.config.topk
         if isinstance(texts, str):
             texts = [texts]
         if not training and self.training:
@@ -122,12 +121,12 @@ class VDRTextEncoder(PreTrainedModel):
                     batch_emb = bow_mask
                 else:
                     batch_emb = self(**encoding)
-                    if k == 0: # acitvate dimension of presented token only
+                    if topk == 0: # acitvate dimension of presented token only
                         topk_mask = torch.zeros_like(batch_emb)
-                    elif k == None or k == -1: # acitvate all dimensions
+                    elif topk == None or topk == -1: # acitvate all dimensions
                         topk_mask = torch.ones_like(batch_emb)
                     else: # acitvate top-k dimensions
-                        topk_mask = build_topk_mask(batch_emb, k)
+                        topk_mask = build_topk_mask(batch_emb, topk)
                     mask = torch.logical_or(bow_mask, topk_mask)
                     batch_emb *= mask
 
@@ -135,16 +134,16 @@ class VDRTextEncoder(PreTrainedModel):
             emb = torch.cat(batch_embs, dim=0)
         return emb
 
-    def disentangle(self, text: str, k: int = None, visual=False, save_file=None, **kwargs):
-        k = k or self.config.topk
-        embeddings_topk = self.embed(text).topk(k)
-        topk_token_ids = embeddings_topk.indices.flatten().tolist()
+    def disentangle(self, text: str, topk: int = None, visual=False, save_file=None):
+        topk = topk or self.config.topk
+        topk_result = self.embed(text).topk(topk)
+        topk_token_ids = topk_result.indices.flatten().tolist()
         topk_token_ids = [VID2LID[x] for x in topk_token_ids]
-        topk_values = embeddings_topk.values.flatten().tolist()
+        topk_values = topk_result.values.flatten().tolist()
         topk_tokens = self.tokenizer.convert_ids_to_tokens(topk_token_ids)
         results = dict(zip(topk_tokens,topk_values))
         if visual:
-            wordcloud_from_dict(results, k=k, save_file=save_file)
+            wordcloud_from_dict(results, k=topk, save_file=save_file)
         return results
 
     dst = disentangle

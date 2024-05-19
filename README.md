@@ -186,7 +186,7 @@ python -m examples.demo.quick_start
 ### Data Disentanglement
 ```python
 # Disentangling query embedding
->>> disentanglement = vdr_text2text.encoder_q.dst(query, k=768, visual=True) # Generate a word cloud if `visual`=True
+>>> disentanglement = vdr_text2text.encoder_q.dst(query, topk=768, visual=True) # Generate a word cloud if `visual`=True
 >>> print(disentanglement)
 
 # Output: 
@@ -201,7 +201,7 @@ python -m examples.demo.quick_start
 ### Retrieval Reasoning
 ```python
 # Retrieval reasoning on query-passage match
->>> reasons = vdr_text2text.explain(q=query, p=passages[0], k=768, visual=True)
+>>> reasons = vdr_text2text.explain(q=query, p=passages[0], topk=768, visual=True)
 >>> print(reasons)
 
 # Output: 

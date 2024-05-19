@@ -210,7 +210,8 @@ class VDRImageEncoder(PreTrainedModel):
         x = self.ln_post(x)
         return x
 
-    def embed(self, image: Union[str, T], training: bool = False):
+    def embed(self, image: Union[str, T], training: bool = False, topk=None):
+        topk = topk or self.config.topk
         with torch.no_grad() if not training else nullcontext():
             if isinstance(image, str):
                 image = self.load_image_file(image)
@@ -219,8 +220,8 @@ class VDRImageEncoder(PreTrainedModel):
             img_emb = img_emb.max(1)[0]
             img_emb = elu1p(img_emb)
             img_emb = F.normalize(img_emb)
-            m = build_topk_mask(img_emb, k=self.config.topk)
-            img_emb = img_emb * m
+            topk_mask = build_topk_mask(img_emb, k=topk)
+            img_emb = img_emb * topk_mask
         return img_emb
 
     def load_image_file(self, file_path):
@@ -228,18 +229,19 @@ class VDRImageEncoder(PreTrainedModel):
         image = preprocess(image)
         return image.unsqueeze(0)
 
-    def disentangle(self, image: Union[str, T], k: int = None, visual=False, save_file=None, **kwargs):
-        k = k or self.config.topk
-        topk = self.embed(image).topk(k)
-        topk_token_ids = topk.indices.flatten().tolist()
+    def disentangle(self, image: Union[str, T], topk: int = None, visual=False, save_file=None):
+        topk = topk or self.config.topk
+        topk_result = self.embed(image).topk(topk)
+        topk_token_ids = topk_result.indices.flatten().tolist()
         topk_token_ids = [VID2LID[x] for x in topk_token_ids]
-        topk_values = topk.values.flatten().tolist()
+        topk_values = topk_result.values.flatten().tolist()
         topk_tokens = self.tokenizer.convert_ids_to_tokens(topk_token_ids)
         results = dict(zip(topk_tokens,topk_values))
         if visual:
-            wordcloud_from_dict(results, k=k, save_file=save_file)
+            wordcloud_from_dict(results, k=topk, save_file=save_file)
         return results
-    
+
+
     dst = disentangle
 
     def display_image(self, image: Union[str, T] = None, save_file=None):
