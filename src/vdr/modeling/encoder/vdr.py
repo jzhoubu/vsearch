@@ -100,8 +100,8 @@ class VDREncoder(PreTrainedModel):
         bow: bool = False, 
         training: bool = False,
         to_cpu: bool = False,
-        return_numpy: bool = False,
-        verbose: bool = False,
+        convert_to_tensor: bool = True,
+        show_progress_bar: bool = False,
     ) -> T:
         """Embeds texts into lexical representations.
 
@@ -116,8 +116,8 @@ class VDREncoder(PreTrainedModel):
             bow (bool): If True, embeds texts into binary token representations.
             training (bool): If True, keeps gradients for backpropagation. 
             to_cpu (bool): If True, moves the result to CPU memory.
-            return_numpy (bool): If True, returns a NumPy array instead of a Tensor.
-            verbose (bool): If True, displays embedding progress. 
+            convert_to_tensor (bool): If True, returns a Tensor instead of a NumPy array.
+            show_progress_bar (bool): If True, displays embedding progress. 
 
         Returns:
             Tensor: Lexical representations of input texts, with shape [N, V], 
@@ -135,7 +135,7 @@ class VDREncoder(PreTrainedModel):
             batch_embs = []
             num_text = len(texts)
             iterator = range(0, num_text, batch_size)
-            for batch_start in tqdm(iterator) if verbose else iterator:
+            for batch_start in tqdm(iterator) if show_progress_bar else iterator:
                 batch_texts = texts[batch_start : batch_start + batch_size]
                 encoding = self.encode(batch_texts, max_len=max_len)
                 bow_mask = self.build_bow_mask(encoding.input_ids)
@@ -157,7 +157,7 @@ class VDREncoder(PreTrainedModel):
 
                 batch_embs.append(batch_emb)
             emb = torch.cat(batch_embs, dim=0)
-            if return_numpy:
+            if not convert_to_tensor:
                 emb = emb.cpu().numpy()
             elif to_cpu:
                 emb = emb.cpu()
