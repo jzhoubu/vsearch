@@ -5,15 +5,6 @@ import numpy as np
 
 elu1p = lambda x: F.elu(x) + 1
 
-"""
-def build_topk_mask(embs: Union[torch.Tensor, np.ndarray], k: int):        
-    if isinstance(embs, np.ndarray):
-        embs = torch.Tensor(embs)
-    kth_largest_value = -torch.kthvalue(-embs, k=k+1).values.unsqueeze(-1).float()
-    topk_mask = embs > kth_largest_value
-    return topk_mask
-"""
-
 def build_topk_mask(embs: Union[torch.Tensor, np.ndarray], k: int = 768, dim: int = -1):        
     if isinstance(embs, np.ndarray):
         embs = torch.Tensor(embs)

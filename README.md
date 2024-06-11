@@ -108,7 +108,7 @@ python download.py all
 <summary>Testing</summary>
 
 ```bash
-python -m examples.demo.quick_start
+python -m test.quick_start
 # Expected Ouput:
 # tensor([[91.1257, 17.6930, 13.0358, 12.4576]], device='cuda:0')
 # tensor([[0.3209, 0.0984]])
@@ -215,7 +215,7 @@ python -m examples.demo.quick_start
 </details>
 
 <details>
-<summary>Semi-Parametric Search</summary>
+<summary>Semi-Parametric Search (alpha and beta search) </summary>
 
 ### Alpha search
 ```python
@@ -294,7 +294,7 @@ During training, we display `InfoCard` to monitor the training progress.
 ### 1. Build a Binary Token Index
 To construct a binary token index for text corpus:
 ```bash
-python -m inference.build_index.build_binary_index \
+python -m inference.build_index.binary_token_index \
         --text_file="path/to/your/corpus_file.jsonl" \
         --save_file="path/to/your/output_index.npz" \
         --batch_size=32 \

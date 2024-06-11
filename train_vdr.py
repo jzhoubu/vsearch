@@ -17,7 +17,7 @@ from src.vdr.data.biencoder_dataset import BiencoderDatasetsCfg
 from src.vdr.data.ddp_iterators import MultiSetDataIterator, get_data_iterator
 from src.vdr.training.conf_utils import setup_cfg_gpu, set_seed, setup_logger
 from src.vdr.training.model_utils import get_optimizer, get_schedule_linear, CheckpointState
-from src.vdr.training.loss import _do_biencoder_fwd_pass
+from src.vdr.training.loss_utils import _do_biencoder_fwd_pass
 from src.vdr.training.ddp_utils import is_master
 
 logger = logging.getLogger()

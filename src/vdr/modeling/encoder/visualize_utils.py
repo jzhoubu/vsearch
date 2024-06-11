@@ -9,3 +9,4 @@ def wordcloud_from_dict(d: dict, k=100, width=800, height=800, save_file=None):
     plt.show()
     if save_file is not None:
         wordcloud.to_file(save_file)
+

@@ -1,5 +1,4 @@
 import logging
-import random
 import torch
 import torch.nn.functional as F
 from typing import Tuple
@@ -9,7 +8,7 @@ from torch import nn
 from ..modeling.biencoder.biencoder import BiEncoderBatch
 from .ddp_utils import GatherLayer
 from .model_utils import move_to_device
-from ..utils.sparse import build_bow_mask, build_topk_mask, build_cts_mask
+from ..modeling.encoder.sparsify_utils import build_bow_mask, build_topk_mask, build_cts_mask
 from .info_card import InfoCard
 
 logger = logging.getLogger(__name__)

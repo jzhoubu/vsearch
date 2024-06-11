@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 
 from ...data.biencoder_dataset import BiEncoderSample
-from ..encoder._types import ENCODER_TYPES, CONFIG_TYPES
+from ..encoder.types import ENCODER_TYPES, CONFIG_TYPES
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,6 @@ class BiEncoderConfig(PretrainedConfig):
     Inherits from PretrainedConfig which provides basic configuration for Pretrained Models.
     
     Args:
-    - type (str): The type of the model.
     - encoder_q (Dict[str, any]): Configuration dictionary for the query encoder.
     - encoder_p (Dict[str, any]): Configuration dictionary for the passage encoder.
     - max_len (int): The maximum length of the input sequences.
@@ -40,7 +39,6 @@ class BiEncoderConfig(PretrainedConfig):
     """
     def __init__(
         self, 
-        type: str = None,
         encoder_q: Dict[str, any] = None, 
         encoder_p: Dict[str, any] = None, 
         max_len=512, 
@@ -48,7 +46,6 @@ class BiEncoderConfig(PretrainedConfig):
         device=None, 
         **kwargs
     ):
-        self.type = type
         self.encoder_q = encoder_q
         self.encoder_p = encoder_p
         self.max_length = max_len
@@ -63,12 +60,12 @@ class BiEncoder(PreTrainedModel):
 
     def __init__(self, config: BiEncoderConfig, **kwargs):        
         super().__init__(config)
+        self.config = config
         encoder_q_cfg = CONFIG_TYPES[config.encoder_q['type']](**config.encoder_q)
         encoder_p_cfg = CONFIG_TYPES[config.encoder_p['type']](**config.encoder_p)
-        self.config = config
         self.encoder_q = ENCODER_TYPES[encoder_q_cfg.type](encoder_q_cfg)
         self.encoder_p = ENCODER_TYPES[encoder_p_cfg.type](encoder_p_cfg) if not self.config.shared_encoder else self.encoder_q
-        self.batch_size = None
+        self.default_batch_size = None
 
     def forward(
         self,
@@ -169,7 +166,7 @@ class BiEncoder(PreTrainedModel):
         Returns:
             List of embeddings for the given sentences
         """
-        batch_size = batch_size or self.batch_size
+        batch_size = batch_size or self.default_batch_size
         q_emb = self.encoder_q.embed(queries, batch_size, convert_to_tensor=convert_to_tensor, **kwargs)
         return q_emb
 
@@ -183,7 +180,7 @@ class BiEncoder(PreTrainedModel):
         Returns:
             List of embeddings for the given sentences
         """
-        batch_size = batch_size or self.batch_size
+        batch_size = batch_size or self.default_batch_size
         processed_corpus = []
         for p in corpus:
             if isinstance(p, str):

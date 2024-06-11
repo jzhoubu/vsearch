@@ -62,13 +62,13 @@ if __name__ == "__main__":
     index = BinaryTokenIndex(index_file=args.index_file, fp16=True, device=args.device)
     index.data = data
     vdr.index = index
-    CPU_FLAG = args.device=='cpu'
+    TENSOR_FLAG = args.device!='cpu'
     logger.info(f"***** Start Beta Search *****") 
     num_ret = max(args.topk, args.num_rerank)
     results = {}
     for i in tqdm(range(0, len(queries), args.batch_size_q)):
         questions_batch = queries[i: i+args.batch_size_q]
-        q_emb = vdr.encoder_q.embed(questions_batch, batch_size=32, return_numpy=CPU_FLAG)
+        q_emb = vdr.encoder_q.embed(questions_batch, batch_size=32, convert_to_tensor=TENSOR_FLAG)
         batch_results = vdr.retrieve(q_emb, a=768, k=num_ret)
         ret_indices, ret_scores = batch_results.ids, batch_results.scores
 

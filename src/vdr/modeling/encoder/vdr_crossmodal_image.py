@@ -1,52 +1,51 @@
 import logging
-from typing import Tuple, List, Union
 from collections import OrderedDict
 from contextlib import nullcontext
-import matplotlib.pyplot as plt
+from typing import List, Union
+
+from PIL import Image
 import torch
 from torch import Tensor as T
 import torch.nn.functional as F
-from torch import nn
-from transformers import PreTrainedModel, PretrainedConfig, AutoTokenizer
-from PIL import Image
-from torchvision.transforms import Compose, Resize, CenterCrop, ToTensor, Normalize
+from torchvision.transforms import Compose, CenterCrop, Normalize, Resize, ToTensor
+from transformers import AutoTokenizer, PreTrainedModel, PretrainedConfig
 from wordcloud import WordCloud
 
-from .vdr_cm_text import VALID_TOKEN_IDS, VID2LID
-from ...utils.sparse import build_topk_mask, elu1p
-from ...utils.visualize import wordcloud_from_dict
+from .vdr_crossmodal_text import VALID_TOKEN_IDS, VID2LID
+from .sparsify_utils import build_bow_mask, build_topk_mask, elu1p
+from .visualize_utils import wordcloud_from_dict
 
 logger = logging.getLogger(__name__)
 
 
-class Bottleneck(nn.Module):
+class Bottleneck(torch.torch.nn.Module):
     expansion = 4
 
     def __init__(self, inplanes, planes, stride=1):
         super().__init__()
 
         # all conv layers have stride 1. an avgpool is performed after the second convolution when stride > 1
-        self.conv1 = nn.Conv2d(inplanes, planes, 1, bias=False)
-        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv1 = torch.nn.Conv2d(inplanes, planes, 1, bias=False)
+        self.bn1 = torch.nn.BatchNorm2d(planes)
 
-        self.conv2 = nn.Conv2d(planes, planes, 3, padding=1, bias=False)
-        self.bn2 = nn.BatchNorm2d(planes)
+        self.conv2 = torch.nn.Conv2d(planes, planes, 3, padding=1, bias=False)
+        self.bn2 = torch.nn.BatchNorm2d(planes)
 
-        self.avgpool = nn.AvgPool2d(stride) if stride > 1 else nn.Identity()
+        self.avgpool = torch.nn.AvgPool2d(stride) if stride > 1 else torch.nn.Identity()
 
-        self.conv3 = nn.Conv2d(planes, planes * self.expansion, 1, bias=False)
-        self.bn3 = nn.BatchNorm2d(planes * self.expansion)
+        self.conv3 = torch.nn.Conv2d(planes, planes * self.expansion, 1, bias=False)
+        self.bn3 = torch.nn.BatchNorm2d(planes * self.expansion)
 
-        self.relu = nn.ReLU(inplace=True)
+        self.relu = torch.nn.ReLU(inplace=True)
         self.downsample = None
         self.stride = stride
 
         if stride > 1 or inplanes != planes * Bottleneck.expansion:
             # downsampling layer is prepended with an avgpool, and the subsequent convolution has stride 1
-            self.downsample = nn.Sequential(OrderedDict([
-                ("-1", nn.AvgPool2d(stride)),
-                ("0", nn.Conv2d(inplanes, planes * self.expansion, 1, stride=1, bias=False)),
-                ("1", nn.BatchNorm2d(planes * self.expansion))
+            self.downsample = torch.nn.Sequential(OrderedDict([
+                ("-1", torch.nn.AvgPool2d(stride)),
+                ("0", torch.nn.Conv2d(inplanes, planes * self.expansion, 1, stride=1, bias=False)),
+                ("1", torch.nn.BatchNorm2d(planes * self.expansion))
             ]))
 
     def forward(self, x: torch.Tensor):
@@ -65,14 +64,14 @@ class Bottleneck(nn.Module):
         return out
 
 
-class AttentionPool2d(nn.Module):
+class AttentionPool2d(torch.nn.Module):
     def __init__(self, spacial_dim: int, embed_dim: int, num_heads: int, output_dim: int = None):
         super().__init__()
-        self.positional_embedding = nn.Parameter(torch.randn(spacial_dim ** 2 + 1, embed_dim) / embed_dim ** 0.5)
-        self.k_proj = nn.Linear(embed_dim, embed_dim)
-        self.q_proj = nn.Linear(embed_dim, embed_dim)
-        self.v_proj = nn.Linear(embed_dim, embed_dim)
-        self.c_proj = nn.Linear(embed_dim, output_dim or embed_dim)
+        self.positional_embedding = torch.nn.Parameter(torch.randn(spacial_dim ** 2 + 1, embed_dim) / embed_dim ** 0.5)
+        self.k_proj = torch.nn.Linear(embed_dim, embed_dim)
+        self.q_proj = torch.nn.Linear(embed_dim, embed_dim)
+        self.v_proj = torch.nn.Linear(embed_dim, embed_dim)
+        self.c_proj = torch.nn.Linear(embed_dim, output_dim or embed_dim)
         self.num_heads = num_heads
 
     def forward(self, x):
@@ -102,7 +101,7 @@ class AttentionPool2d(nn.Module):
         return x[0]
 
 
-class LayerNorm(nn.LayerNorm):
+class LayerNorm(torch.nn.LayerNorm):
     """Subclass torch's LayerNorm to handle fp16."""
 
     def forward(self, x: torch.Tensor):
@@ -110,21 +109,21 @@ class LayerNorm(nn.LayerNorm):
         ret = super().forward(x.type(torch.float32))
         return ret.type(orig_type)
 
-class QuickGELU(nn.Module):
+class QuickGELU(torch.nn.Module):
     def forward(self, x: torch.Tensor):
         return x * torch.sigmoid(1.702 * x)
 
 
-class ResidualAttentionBlock(nn.Module):
+class ResidualAttentionBlock(torch.nn.Module):
     def __init__(self, d_model: int, n_head: int):
                  # , attn_mask: torch.Tensor = None):
         super().__init__()
-        self.attn = nn.MultiheadAttention(d_model, n_head)
+        self.attn = torch.nn.MultiheadAttention(d_model, n_head)
         self.ln_1 = LayerNorm(d_model)
-        self.mlp = nn.Sequential(OrderedDict([
-            ("c_fc", nn.Linear(d_model, d_model * 4)),
+        self.mlp = torch.nn.Sequential(OrderedDict([
+            ("c_fc", torch.nn.Linear(d_model, d_model * 4)),
             ("gelu", QuickGELU()),
-            ("c_proj", nn.Linear(d_model * 4, d_model))
+            ("c_proj", torch.nn.Linear(d_model * 4, d_model))
         ]))
         self.ln_2 = LayerNorm(d_model)
 
@@ -138,14 +137,14 @@ class ResidualAttentionBlock(nn.Module):
         return x
 
 
-class Transformer(nn.Module):
+class Transformer(torch.nn.Module):
     def __init__(self, width: int, layers: int, heads: int, attn_mask: torch.Tensor = None):
         super().__init__()
         self.width = width
         self.layers = layers
         self.attn_mask = attn_mask
         self.heads = heads
-        self.resblocks = nn.ModuleList([ResidualAttentionBlock(width, heads) for _ in range(layers)])
+        self.resblocks = torch.nn.ModuleList([ResidualAttentionBlock(width, heads) for _ in range(layers)])
 
     def forward(self, x: torch.Tensor, attn_mask=None):
         if attn_mask is not None: # change non-none text attn_mask to 3D
@@ -188,13 +187,13 @@ class VDRImageEncoder(PreTrainedModel):
     def __init__(self, config: VDRImageEncoderConfig, **kwargs):
         super().__init__(config, **kwargs)
         self.config = config
-        self.conv1 = nn.Conv2d(in_channels=3, out_channels=config.width, kernel_size=config.patch_size, stride=config.patch_size, bias=False)
+        self.conv1 = torch.nn.Conv2d(in_channels=3, out_channels=config.width, kernel_size=config.patch_size, stride=config.patch_size, bias=False)
         scale = config.width ** -0.5
-        self.positional_embedding = nn.Parameter(scale * torch.randn((config.resolution // config.patch_size) ** 2, config.width))
+        self.positional_embedding = torch.nn.Parameter(scale * torch.randn((config.resolution // config.patch_size) ** 2, config.width))
         self.ln_pre = LayerNorm(config.width)
         self.transformer = Transformer(config.width, config.layers, config.heads)
         self.ln_post = LayerNorm(config.width)
-        self.proj = nn.Parameter(torch.ones([len(VALID_TOKEN_IDS), config.width]))
+        self.proj = torch.nn.Parameter(torch.ones([len(VALID_TOKEN_IDS), config.width]))
         self.valid_token_ids = VALID_TOKEN_IDS
         self.tokenizer = AutoTokenizer.from_pretrained(config.tokenizer_id)
 

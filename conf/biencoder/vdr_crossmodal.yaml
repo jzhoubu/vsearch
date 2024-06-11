@@ -3,7 +3,7 @@ shared_encoder: False
 device:
 
 encoder_q:
-  type: vdr_cm_text
+  type: vdr_crossmodal_text
   model_id: bert-base-uncased
   max_len: 128
   shift_vocab_num: 999
@@ -12,7 +12,7 @@ encoder_q:
   pooling_topk: 
 
 encoder_p:
-  type: vdr_cm_image
+  type: vdr_crossmodal_image
   tokenizer_id: bert-base-uncased
   max_len: 256
   topk: 768
