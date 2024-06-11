@@ -8,7 +8,7 @@ from torch import nn
 from ..modeling.biencoder.biencoder import BiEncoderBatch
 from .ddp_utils import GatherLayer
 from .model_utils import move_to_device
-from ..modeling.encoder.sparsify_utils import build_bow_mask, build_topk_mask, build_cts_mask
+from ..modeling.sparsify_utils import build_bow_mask, build_topk_mask, build_cts_mask
 from .info_card import InfoCard
 
 logger = logging.getLogger(__name__)

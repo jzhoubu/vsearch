@@ -12,8 +12,8 @@ from transformers import AutoTokenizer, PreTrainedModel, PretrainedConfig
 from wordcloud import WordCloud
 
 from .vdr_crossmodal_text import VALID_TOKEN_IDS, VID2LID
-from .sparsify_utils import build_bow_mask, build_topk_mask, elu1p
-from .visualize_utils import wordcloud_from_dict
+from ..sparsify_utils import build_bow_mask, build_topk_mask, elu1p
+from ..visualize_utils import wordcloud_from_dict
 
 logger = logging.getLogger(__name__)
 

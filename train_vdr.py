@@ -13,6 +13,7 @@ import torch.distributed as dist
 import torch.utils.data.distributed
 
 from src.vdr import Retriever, RetrieverConfig
+from src.vdr.modeling.biencoder_utils import create_biencoder_batch
 from src.vdr.data.biencoder_dataset import BiencoderDatasetsCfg
 from src.vdr.data.ddp_iterators import MultiSetDataIterator, get_data_iterator
 from src.vdr.training.conf_utils import setup_cfg_gpu, set_seed, setup_logger
@@ -139,7 +140,8 @@ class RetrieverTrainer(object):
             data_iteration = train_data_iterator.get_iteration()
             random.seed(seed + epoch + data_iteration)
             
-            biencoder_batch = self.model.module.create_biencoder_input(
+            biencoder_batch = create_biencoder_batch(
+                self.model.module,
                 samples=samples_batch,
                 insert_title=self.cfg.train.train_insert_title,
                 num_hard_negatives=cfg.train.hard_negatives,
