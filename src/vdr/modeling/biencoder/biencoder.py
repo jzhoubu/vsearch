@@ -81,7 +81,7 @@ class BiEncoder(PreTrainedModel):
         p_emb = self.encoder_p(p_ids, p_segments, p_attn_mask)
         return q_emb, p_emb
 
-    def encode_queries(self, queries: list[str], batch_size=None, convert_to_tensor=True, **kwargs) -> Union[List[np.ndarray], List[torch.Tensor]]:
+    def encode_queries(self, queries: List[str], batch_size=None, convert_to_tensor=True, **kwargs) -> Union[List[np.ndarray], List[torch.Tensor]]:
         """
         Returns a list of embeddings for the given sentences.
         Args:
@@ -94,7 +94,7 @@ class BiEncoder(PreTrainedModel):
         q_emb = self.encoder_q.embed(queries, batch_size, convert_to_tensor=convert_to_tensor, **kwargs)
         return q_emb
 
-    def encode_corpus(self, corpus: Union[List[str], List[dict[str, str]]], batch_size=None, to_cpu=False, convert_to_tensor=True, **kwargs) -> Union[List[np.ndarray], List[torch.Tensor]]:
+    def encode_corpus(self, corpus: Union[List[str], List[Dict[str, str]]], batch_size=None, to_cpu=False, convert_to_tensor=True, **kwargs) -> Union[List[np.ndarray], List[torch.Tensor]]:
         """
         Returns a list of embeddings for the given sentences.
         Args:
