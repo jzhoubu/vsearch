@@ -1,0 +1,34 @@
+batch_size: 32
+num_train_epochs: 80
+adam_eps: 1e-8
+adam_betas: (0.9, 0.999)
+learning_rate: 2e-5
+max_grad_norm: 2.0
+weight_decay: 0.0
+num_warmup_epochs: 1
+num_epoch_to_save: 10
+num_epoch_to_eval: 1
+sym_loss: True
+semi: False
+
+# negative
+hard_negatives: 1
+other_negatives: 0
+ret_negatives: 0
+ret_topk: 20
+ret_dropout: 0
+negative_pool_size: 100
+
+# data
+train_insert_title: True
+valid_insert_title: False
+require_positive: True
+require_hard_negative: True
+train_sampling_rates: 
+
+# info
+log_batch_step: 100
+train_rolling_loss_step: 100
+
+# checkpoint file to initialize the model
+model_file:

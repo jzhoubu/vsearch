@@ -5,16 +5,10 @@ device:
 
 encoder_q:
   type: dpr
-  max_seq_len: 128
-  pretrained: True
-  norm: False
+  max_len: 128
   base_model_id: bert-base-uncased
-  hidden_size: 768
 
 encoder_p:
   type: dpr
-  max_seq_len: 256
-  pretrained: True
-  norm: False
+  max_len: 256
   base_model_id: bert-base-uncased
-  hidden_size: 768
