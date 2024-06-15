@@ -52,7 +52,7 @@ import json
 passages = [...]  # Your passages here
 with open("path/to/your/text_file.jsonl", "w") as file:
     for passage in passages:
-        file.write(json.dumps({"text": passage}) + "\n")
+        file.write(json.dumps(passage) + "\n")
 ```
 
 #### Building the Dense Index
@@ -67,16 +67,15 @@ python -m inference.build_index.dense_index \
         --batch_size=64 \
         --device=cuda
 ```
-This will generate one index `path/to/save_dir/shard0.pt`. 
-
-Parameters:
 - `--checkpoint`: Path the retriever checkpoint dir.
 - `--text_file`: Path to the corpus file to be indexed (`.jsonl` format).
 - `--save_file`: Path where the index file will be saved (`.npz` format).
 - `--batch_size`: Batch size for processing.
 
+This will generate a single index file as `path/to/save_dir/shard0.pt`. 
 
-#### Sharding and Parallel Index Building [Optional]
+
+### Sharding and Parallel Index Building [Optional]
 
 For larger corpora, shard the indexing process to parallelize and accelerate it:
 
@@ -94,17 +93,15 @@ python -m inference.build_index.dense_index \
         --device=cuda:$SHARD_ID &
 done
 ```
-Parameters:
 - `--num_shard`: total number of shards
 - `--shard_id`: shard id (start from 0 to `num_shard`-1) for the current indexing job
 
-This command creates multiple index files under `path/to/save_dir/shard*.pt`.
+This will create multiple index files under `path/to/save_dir/shard*.pt`.
 
 
-#### 2. Searching the Dense Index
+### 2. Searching the Dense Index
 
 Once the index is built, perform searches to find relevant passages based on queries:
-
 
 ```bash
 python -m inference.search.search_dense_index \
@@ -115,14 +112,13 @@ python -m inference.search.search_dense_index \
         --batch_size_q=32 \
         --device=cuda
 ```
-Parameters:
 - `--query_file`: Path to file containing questions, with each question as a separate line (`.jsonl` format). 
 - `--index_file`: Path to pre-computed index files (`.pt` format, supports glob patterns).
 - `--save_file`: Path where the search results will be stored (`.json` format).
 - `--batch_size`: Number of queries per batch.
 
 
-#### 3. Scoring the Search Result
+### 3. Scoring the Search Result
 
 Evaluate and score the search results for wiki21m benchmark:
 
@@ -132,15 +128,11 @@ python -m inference.score.eval_wiki21m \
     --text_file=path/to/your/text_file.jsonl \
     --qa_file=path/to/dpr/qa_file.csv
 ```
-
-Parameters:
 - `--result_file`: Path to search results (`.json` format).
 - `--qa_file`: Path to DPR-provided qa file (`.csv` format)
 
-The result presents top-k retrieval accuracy on NQ, triviaQA, or webQA dataset.
 
-
-The following table displays the retrieval accuracy of the `vsearch/dpr-nq` checkpoint on NQ test set:
+The retrieval accuracy of the `vsearch/dpr-nq` checkpoint on NQ test set are shown below:
 
 | Checkpoint | Top-1 | Top-5 | Top-20 |
 |:----------:|:-----:|:-----:|:------:|
