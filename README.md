@@ -291,6 +291,12 @@ During training, we display `InfoCard` to monitor the training progress.
 
 ## 🎮 Inference
 
+For dense retrieval (DPR) inference, please see our detailed documentation [here](examples/dense_inference/README.md).
+
+---
+
+For semi-parametric retrieval (SVDR) inference, see below:
+
 ### 1. Build a Binary Token Index
 To construct a binary token index for text corpus:
 ```bash
@@ -321,7 +327,6 @@ python -m inference.search.beta_search \
 ```
 Parameters:
 - `--query_file`: Path to file containing questions, with each question as a separate line (`.jsonl` format). 
-- `--qa_file`: Path to DPR-provided qa file (`.csv` format). Required if `--query_file` is not provided.
 - `--text_file`: Path to the corpus file (`.jsonl` format).
 - `--index_file`: Path to pre-computed index file (`.npz` format).
 - `--save_file`: Path where the search results will be stored (`.json` format).
