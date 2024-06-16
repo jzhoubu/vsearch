@@ -4,10 +4,10 @@ This guide will walk you through how to utilize the Dense Passage Retrieval (DPR
 
 ### Loading the DPR Model
 
-Start by loading the DPR model with the Retriever.from_pretrained method, and then proceed to embed a query and corresponding passages:
+Start by loading the DPR model with the `Retriever.from_pretrained` method, and then proceed to embed a query and corresponding passages:
 
 ```python
-from src.vdr import Retriever
+from src.ir import Retriever
 
 # Initialize the DPR retriever
 dpr = Retriever.from_pretrained("vsearch/dpr-nq")
@@ -69,7 +69,7 @@ python -m inference.build_index.dense_index \
 ```
 - `--checkpoint`: Path the retriever checkpoint dir.
 - `--text_file`: Path to the corpus file to be indexed (`.jsonl` format).
-- `--save_file`: Path where the index file will be saved (`.npz` format).
+- `--save_file`: Path where the index file will be saved (`.pt` format, which consists of a large `torch.Tensor`).
 - `--batch_size`: Batch size for processing.
 
 This will generate a single index file as `path/to/save_dir/shard0.pt`. 
@@ -134,8 +134,8 @@ python -m inference.score.eval_wiki21m \
 
 The retrieval accuracy of the `vsearch/dpr-nq` checkpoint on NQ test set are shown below:
 
-| Checkpoint | Top-1 | Top-5 | Top-20 |
-|:----------:|:-----:|:-----:|:------:|
-| `dpr-nq`   | 43.49 | 67.84 |  80.14 |
+| Checkpoint | Top-1 | Top-5 | Top-10 | Top-20 | Top-100 |
+|:----------:|:-----:|:-----:|:------:|:------:|:-------:|
+| `dpr-nq`   | 43.49 | 67.84 |  74.96 | 80.14  | 86.48   |
 
 
