@@ -9,7 +9,7 @@ from transformers import PreTrainedModel, PretrainedConfig
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 
-from ...data.biencoder_dataset import BiEncoderSample
+from ..data.biencoder_dataset import BiEncoderSample
 from ..encoder.types import ENCODER_TYPES, CONFIG_TYPES
 
 logger = logging.getLogger(__name__)

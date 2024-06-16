@@ -4,7 +4,7 @@ import collections
 import numpy as np
 
 from ..data.biencoder_dataset import BiEncoderSample
-from .biencoder.biencoder import BiEncoder
+from ..biencoder.biencoder import BiEncoder
 
 BiEncoderBatch = collections.namedtuple(
     "BiEncoderBatch",

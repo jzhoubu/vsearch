@@ -4,7 +4,7 @@ import logging
 import numpy as np
 import argparse
 from tqdm import tqdm
-from src.vdr.utils.qa import has_answer
+from src.ir.utils.qa_utils import has_answer
 import csv
 
 logging.basicConfig(level = logging.INFO)

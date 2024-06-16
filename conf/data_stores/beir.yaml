@@ -1,5 +1,5 @@
 msmarco_train:
-  _target_: src.vdr.data.biencoder_dataset.BiEncoderDataset
+  _target_: src.ir.data.biencoder_dataset.BiEncoderDataset
   file: data/train/msmarco-train.jsonl
   download_link: https://huggingface.co/datasets/vsearch/msmarco/resolve/main/train.jsonl.gz
 

@@ -1,15 +1,15 @@
 nq_train:
-  _target_: src.vdr.data.biencoder_dataset.BiEncoderDataset
+  _target_: src.ir.data.biencoder_dataset.BiEncoderDataset
   file: data/train/nq-train.jsonl
   download_link: https://huggingface.co/datasets/vsearch/nq/resolve/main/train.jsonl.gz
 
 trivia_train:
-  _target_: src.vdr.data.biencoder_dataset.BiEncoderDataset
+  _target_: src.ir.data.biencoder_dataset.BiEncoderDataset
   file: data/train/trivia-train.jsonl
   download_link: https://huggingface.co/datasets/vsearch/tqa/resolve/main/train.jsonl.gz
 
 webq_train:
-  _target_: src.vdr.data.biencoder_dataset.BiEncoderDataset
+  _target_: src.ir.data.biencoder_dataset.BiEncoderDataset
   file: data/train/webq-train.jsonl
   download_link: https://huggingface.co/datasets/vsearch/webq/resolve/main/train.jsonl.gz
 

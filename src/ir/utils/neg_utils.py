@@ -1,13 +1,12 @@
 import logging
-import torch
 import random
 from torch import Tensor as T
 from typing import Any, Tuple, List, Union
 import numpy as np
-from .retriever import Retriever
-from ...utils.qa import has_answer
-from ...data.biencoder_dataset import _normalize
-from ...index.base import Index
+from ..retriever.retriever import Retriever
+from ..utils.qa_utils import has_answer
+from ..data.biencoder_dataset import _normalize
+from ..index.base import Index
 
 logger = logging.getLogger(__name__)
 

@@ -1,5 +1,5 @@
 import torch
-from src.vdr import Retriever
+from src.ir import Retriever
 
 # Initialize the retriever
 vdr_text2text = Retriever.from_pretrained("vsearch/vdr-nq")

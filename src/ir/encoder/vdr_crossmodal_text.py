@@ -8,8 +8,8 @@ import torch.nn.functional as F
 from tqdm import tqdm
 from transformers import AutoModel, AutoTokenizer, BertConfig, BatchEncoding, PreTrainedModel
 
-from ..sparsify_utils import build_bow_mask, build_topk_mask, elu1p
-from ..visualize_utils import wordcloud_from_dict
+from ..utils.sparsify_utils import build_bow_mask, build_topk_mask, elu1p
+from ..utils.visualize_utils import wordcloud_from_dict
 
 logger = logging.getLogger(__name__)
 

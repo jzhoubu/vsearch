@@ -10,8 +10,8 @@ import torch.nn.functional as F
 from tqdm import tqdm
 from transformers import AutoModel, AutoTokenizer, BertConfig, BatchEncoding, PreTrainedModel
 
-from ..sparsify_utils import build_bow_mask, build_topk_mask, elu1p
-from ..visualize_utils import wordcloud_from_dict
+from ..utils.sparsify_utils import build_bow_mask, build_topk_mask, elu1p
+from ..utils.visualize_utils import wordcloud_from_dict
 
 
 logger = logging.getLogger(__name__)
@@ -83,10 +83,11 @@ class VDREncoder(PreTrainedModel):
 
     def encode(
         self,
-        texts: List[str], 
+        texts: Union[List[str], str], 
         max_len: int = None, 
     ) -> BatchEncoding:
         max_len = max_len or self.config.max_len
+        texts = [texts] if isinstance(texts, str) else texts
         encoding = self.tokenizer.batch_encode_plus(texts, padding="max_length", truncation=True, max_length=max_len, return_tensors='pt')
         encoding = encoding.to(self.device)
         return encoding
@@ -126,8 +127,7 @@ class VDREncoder(PreTrainedModel):
 
         max_len = max_len or self.config.max_len
         topk = topk or self.config.topk
-        if isinstance(texts, str):
-            texts = [texts]
+        texts = [texts] if isinstance(texts, str) else texts
         if not training and self.training:
             self.eval()
 

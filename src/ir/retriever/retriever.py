@@ -6,9 +6,9 @@ import torch.nn.functional as F
 from typing import Any, Tuple, List, Union
 import numpy as np
 from ..biencoder.biencoder import BiEncoder, BiEncoderConfig
-from ...utils.qa import has_answer
-from ...data.biencoder_dataset import _normalize
-from ...index.base import Index
+from ..utils.qa_utils import has_answer
+from ..data.biencoder_dataset import _normalize
+from ..index.base import Index
 
 logger = logging.getLogger(__name__)
 
@@ -32,20 +32,20 @@ class Retriever(BiEncoder):
     def retrieve(
         self, 
         queries: Union[List[str], np.ndarray], 
-        a: int = 32, 
         k: int = 5, 
         dropout: float = 0, 
+        a: int = None, 
         index: Index = None
     ):
-        index = index or self.index    
+        index = index or self.index
+        a = a or self.encoder_q.config.topk
         if isinstance(queries, list) and isinstance(queries[0], str):
             if a == 0:
                 q_embs = self.encoder_q.embed(queries)
                 q_embs = F.dropout(q_embs, p=dropout)
             else:
                 q_embs = self.encoder_q.embed(queries, topk=a)
-                if 0 < dropout < 1:
-                    q_embs = F.dropout(q_embs, p=dropout)
+                q_embs = F.dropout(q_embs, p=dropout)
         elif isinstance(queries, np.ndarray):
             q_embs = queries
             q_embs = torch.Tensor(q_embs)

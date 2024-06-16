@@ -5,10 +5,10 @@ from typing import Tuple
 from torch import Tensor as T
 from torch import nn
 
-from ..modeling.biencoder.biencoder import BiEncoderBatch
+from ..biencoder.biencoder import BiEncoderBatch
 from .ddp_utils import GatherLayer
 from .model_utils import move_to_device
-from ..modeling.sparsify_utils import build_bow_mask, build_topk_mask, build_cts_mask
+from ..utils.sparsify_utils import build_bow_mask, build_topk_mask, build_cts_mask
 from .info_card import InfoCard
 
 logger = logging.getLogger(__name__)
@@ -84,8 +84,6 @@ def _do_biencoder_fwd_pass(
             p_segments=p_segments,
             p_attn_mask=p_attn_mask,
             answers=answers,
-            other_negatives=cfg.train.ret_negatives,
-            return_bow=False,
         )
                 
         loss, is_correct_1, is_correct_2 = compute_dpr_loss(

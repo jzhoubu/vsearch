@@ -2,7 +2,7 @@ import argparse
 import json
 from tqdm import tqdm
 import torch
-from src.vdr.modeling.retriever.retriever import Retriever
+from src.ir import Retriever
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

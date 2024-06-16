@@ -12,14 +12,14 @@ from torch.cuda.amp import autocast
 import torch.distributed as dist
 import torch.utils.data.distributed
 
-from src.vdr import Retriever, RetrieverConfig
-from src.vdr.modeling.biencoder_utils import create_biencoder_batch
-from src.vdr.data.biencoder_dataset import BiencoderDatasetsCfg
-from src.vdr.data.ddp_iterators import MultiSetDataIterator, get_data_iterator
-from src.vdr.training.conf_utils import setup_cfg_gpu, set_seed, setup_logger
-from src.vdr.training.model_utils import get_optimizer, get_schedule_linear, CheckpointState
-from src.vdr.training.loss_utils import _do_biencoder_fwd_pass
-from src.vdr.training.ddp_utils import is_master
+from src.ir import Retriever, RetrieverConfig
+from src.ir.utils.biencoder_utils import create_biencoder_batch
+from src.ir.data.biencoder_dataset import BiencoderDatasetsCfg
+from src.ir.data.ddp_iterators import MultiSetDataIterator, get_data_iterator
+from src.ir.training.conf_utils import setup_cfg_gpu, set_seed, setup_logger
+from src.ir.training.model_utils import get_optimizer, get_schedule_linear, CheckpointState
+from src.ir.training.loss_utils import _do_biencoder_fwd_pass
+from src.ir.training.ddp_utils import is_master
 
 logger = logging.getLogger()
 setup_logger(logger)

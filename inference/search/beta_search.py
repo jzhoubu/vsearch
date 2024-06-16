@@ -9,8 +9,8 @@ import os
 import torch
 from tqdm import tqdm
 from scipy.sparse import load_npz, csr_array
-from src.vdr import Retriever
-from src.vdr.index.binary_token_index import BinaryTokenIndex
+from src.ir import Retriever
+from src.ir.index.binary_token_index import BinaryTokenIndex
 
 logging.basicConfig(level = logging.INFO)
 logger = logging.getLogger()
