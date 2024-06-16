@@ -57,7 +57,7 @@ This repository includes:
     - Visualization
     - Semi-parametric Search
 
-3. [Training](#-training) (in development 🔧, expected to be released soon)
+3. [Training](#-training)
 
 4. [Inference](#-inference)
     - Build index
@@ -123,7 +123,7 @@ python -m test.quick_start
 
 ```python
 >>> import torch
->>> from src.vdr import Retriever
+>>> from src.ir import Retriever
 
 # Initialize the retriever
 >>> vdr_text2text = Retriever.from_pretrained("vsearch/vdr-nq")
@@ -245,7 +245,7 @@ python -m test.quick_start
 
 
 ## 👾 Training
-We are testing on python `3.9` and torch `2.2.1`. Configuration is handled through `hydra==1.3.2`.
+We are testing on `python==3.9` and `torch==2.2.1`. Configuration is handled through `hydra==1.3.2`.
 
 ```bash
 EXPERIMENT_NAME=test
@@ -265,7 +265,7 @@ During training, we display `InfoCard` to monitor the training progress.
 > [!TIP]
 > <details><summary>What is <b><span style="color: blue;">InfoCard</span></b>?</summary>
 >
-> The `InfoCard` is a organized log generated during the training that helps us visually track the progress.  
+> `InfoCard` is a organized log generated during the training that helps us visually track the progress.  
 > 
 > An `InfoCard` looks like this:
 >
@@ -289,9 +289,9 @@ During training, we display `InfoCard` to monitor the training progress.
 
 
 
-## 🎮 Inference
+## 🎮 Inference (Large-scale Retrieval)
 
-For dense retrieval (DPR) inference, please see our detailed documentation [here](examples/dense_inference/README.md).
+For dense retrieval (DPR) inference, please see our detailed documentation [here](examples/inference_dense/README.md).
 
 ---
 
@@ -364,5 +364,3 @@ If you find this repository useful, please consider giving ⭐ and citing our pa
   year={2024}
 }
 ```
-## License
-`VDR` is licensed under the terms of the MIT license. See LICENSE for more details.
