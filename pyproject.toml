@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "vdr"
+name = "vsearch"
 version = "0.1.0"
-description = "The official implementation of vocabulary disentangled retriever (VDR)"
+description = "Disentangling Data on LM Vocabulary Space for Efficient Search and Retrieval-augmented Generation (RAG)"
 authors = ["Jiawei Zhou <jzhoubu@connect.ust.hk>"]
 readme = "README.md"
 
