@@ -1,11 +1,10 @@
 import logging
 import torch
-import torch.nn.functional as F
 from typing import Tuple
+import torch.nn.functional as F
 from torch import Tensor as T
-from torch import nn
 
-from ..biencoder.biencoder import BiEncoderBatch
+from ..utils.biencoder_utils import BiEncoderBatch
 from .ddp_utils import GatherLayer
 from .model_utils import move_to_device
 from ..utils.sparsify_utils import build_bow_mask, build_topk_mask, build_cts_mask
@@ -24,7 +23,7 @@ def fetch_global_vectors(v_local, bow_local, k=768):
 
 def _do_biencoder_fwd_pass(
     cfg,
-    model: nn.Module,
+    model: torch.nn.Module,
     input: BiEncoderBatch,
     answers = None, 
     verbose = False,

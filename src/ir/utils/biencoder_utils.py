@@ -11,6 +11,8 @@ BiEncoderBatch = collections.namedtuple(
     [
         "q_tensor",
         "p_tensor",
+        "q_texts",
+        "p_texts",
         "answers",
     ],  
 )
@@ -87,5 +89,7 @@ def create_biencoder_batch(
         return BiEncoderBatch(
                 batch_q_tensor,
                 batch_p_tensor,
+                q_texts,
+                p_texts,
                 batch_answers,
             )

@@ -14,17 +14,6 @@ from ..encoder.types import ENCODER_TYPES, CONFIG_TYPES
 
 logger = logging.getLogger(__name__)
 
-
-BiEncoderBatch = collections.namedtuple(
-    "BiEncoderBatch",
-    [
-        "q_tensor",
-        "p_tensor",
-        "answers",
-    ],  
-)
-
-
 class BiEncoderConfig(PretrainedConfig):
     """
     Configuration class for a Bi-Encoder.
