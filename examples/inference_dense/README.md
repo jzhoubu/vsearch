@@ -49,10 +49,16 @@ Prepare your text data in a JSONL format:
 ```python
 import json
 
-passages = [...]  # Your passages here
-with open("path/to/your/text_file.jsonl", "w") as file:
-    for passage in passages:
+wiki_passages = [...]  # wiki21m passages here, list of string
+with open("data/corpus/wiki21m.jsonl", "w") as file:
+    for passage in wiki_passages:
         file.write(json.dumps(passage) + "\n")
+
+nq_test_questions = [...]
+with open("data/eval/wiki21m/nq-test-questions.jsonl", "w") as file:
+    for query in nq_test_questions:
+        file.write(json.dumps(query) + "\n")
+
 ```
 
 #### Building the Dense Index
@@ -62,8 +68,8 @@ Execute the following command to build the dense index:
 ```bash
 python -m inference.build_index.dense_index \
         --checkpoint=vsearch/dpr-nq \
-        --text_file=path/to/your/text_file.jsonl \
-        --save_dir=path/to/save_dir/ \
+        --text_file=data/corpus/wiki21m.jsonl \
+        --save_file=experiment/inference_dense_example/index/index.pt \
         --batch_size=64 \
         --device=cuda
 ```
@@ -72,7 +78,7 @@ python -m inference.build_index.dense_index \
 - `--save_file`: Path where the index file will be saved (`.pt` format, which consists of a large `torch.Tensor`).
 - `--batch_size`: Batch size for processing.
 
-This will generate a single index file as `path/to/save_dir/shard0.pt`. 
+This will generate a single index file as `experiment/inference_dense_example/index/index.pt`, which contains a PyTorch tensor with dimensions [num_text, dim]
 
 
 ### Sharding and Parallel Index Building [Optional]
@@ -81,12 +87,12 @@ For larger corpora, shard the indexing process to parallelize and accelerate it:
 
 ```bash
 NUM_SHARDS=4
-for SHARD_ID in {0..3}
+for SHARD_ID in $(seq 0 $(($NUM_SHARDS - 1)))
 do
 python -m inference.build_index.dense_index \
         --checkpoint=vsearch/dpr-nq \
-        --text_file=path/to/your/text_file.jsonl \
-        --save_dir=path/to/save_dir \
+        --text_file=data/corpus/wiki21m.jsonl \
+        --save_file=experiment/inference_dense_example/index/index${SHARD_ID}.pt \
         --batch_size=64 \
         --num_shard=$NUM_SHARDS \
         --shard_id=$SHARD_ID \
@@ -96,8 +102,8 @@ done
 - `--num_shard`: total number of shards
 - `--shard_id`: shard id (start from 0 to `num_shard`-1) for the current indexing job
 
-This will create multiple index files under `path/to/save_dir/shard*.pt`.
 
+This will ganerate separate index files (e.g., `index0.pt`, `index1.pt`, `index2.pt`, `index3.pt`) under dir `experiment/inference_dense_example/index`.
 
 ### 2. Searching the Dense Index
 
@@ -106,9 +112,9 @@ Once the index is built, perform searches to find relevant passages based on que
 ```bash
 python -m inference.search.search_dense_index \
         --checkpoint=vsearch/dpr-nq \
-        --query_file=path/to/your/query_file.jsonl \
-        --index_file=path/to/save_dir/*.pt \
-        --save_file=path/to/result_file.json  \
+        --query_file=data/eval/wiki21m/nq-test-questions.jsonl \
+        --index_file=experiment/inference_dense_example/index/index*.pt \
+        --save_file=experiment/inference_dense_example/results/search_result.json  \
         --batch_size_q=32 \
         --device=cuda
 ```
@@ -124,12 +130,12 @@ Evaluate and score the search results for wiki21m benchmark:
 
 ```bash
 python -m inference.score.eval_wiki21m \
-    --result_file=path/to/result_file.json \
-    --text_file=path/to/your/text_file.jsonl \
-    --qa_file=path/to/dpr/qa_file.csv
+    --result_file=experiment/inference_dense_example/results/search_result.json \
+    --text_file=data/corpus/wiki21m.jsonl \
+    --qa_file=data/eval/wiki21m/nq-test.qa.csv
 ```
 - `--result_file`: Path to search results (`.json` format).
-- `--qa_file`: Path to DPR-provided qa file (`.csv` format)
+- `--qa_file`: Path to DPR-provided qa file (`.csv` format, provided by DPR repo)
 
 
 The retrieval accuracy of the `vsearch/dpr-nq` checkpoint on NQ test set are shown below:
