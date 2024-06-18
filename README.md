@@ -291,9 +291,15 @@ During training, we display `InfoCard` to monitor the training progress.
 
 ## 🎮 Inference (Large-scale Retrieval)
 
-For dense retrieval (DPR) inference, please see our detailed documentation [here](examples/inference_dense/README.md).
+For dense retrieval (DPR) inference, please see detailed documentation [here](examples/inference_dense/README.md).
 
 ---
+
+For sparse retrieval (VDR) inference, please see detailed documentation [here](examples/inference_sparse/README.md).
+
+---
+
+
 
 For semi-parametric retrieval (SVDR) inference, see below:
 
