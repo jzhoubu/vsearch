@@ -44,9 +44,6 @@ The large-scale retrieval inference process generally involves three key steps:
 
 ### 1. Building a Sparse Index
 
-For efficient retrieval from a large corpus, you need to build a sparse embedding-based index. 
-Below are the steps to create and save a dense index of your text data.
-
 #### Creating the Text File for Indexing
 
 Prepare your text data in a JSONL format:
@@ -54,10 +51,16 @@ Prepare your text data in a JSONL format:
 ```python
 import json
 
-passages = [...]  # Your passages here
-with open("path/to/your/text_file.jsonl", "w") as file:
-    for passage in passages:
+wiki_passages = [...]  # wiki21m passages here, list of string
+with open("data/corpus/wiki21m.jsonl", "w") as file:
+    for passage in wiki_passages:
         file.write(json.dumps(passage) + "\n")
+
+nq_test_questions = [...]
+with open("data/eval/wiki21m/nq-test-questions.jsonl", "w") as file:
+    for query in nq_test_questions:
+        file.write(json.dumps(query) + "\n")
+
 ```
 
 #### Building the Sparse Index
@@ -67,8 +70,8 @@ Execute the following command to build the dense index:
 ```bash
 python -m inference.build_index.sparse_index \
         --checkpoint=vsearch/vdr-nq \
-        --text_file=path/to/your/text_file.jsonl \
-        --save_dir=path/to/save_dir/ \
+        --text_file=data/corpus/wiki21m.jsonl \
+        --save_file=experiment/inference_sparse_example/index/index.npz \
         --batch_size=64 \
         --device=cuda
 ```
@@ -136,11 +139,10 @@ python -m inference.score.eval_wiki21m \
 - `--result_file`: Path to search results (`.json` format).
 - `--qa_file`: Path to DPR-provided qa file (`.csv` format, provided by DPR repo)
 
-<!-- 
+
 The retrieval accuracy of the `vsearch/vdr-nq` checkpoint on NQ test set are shown below:
 
-| Checkpoint | Top-1 | Top-5 | Top-10 | Top-20 | Top-100 |
-|:----------:|:-----:|:-----:|:------:|:------:|:-------:|
-| `vdr-nq`   | 38.34 | 60.19 | 67.29  |  73.46 |  82.77  |
-| `svdr-nq`   |  |  |   |   |    |
--->
+| Checkpoint       | Top-1 | Top-5 | Top-10 | Top-20 | Top-100 |
+|:----------------:|:-----:|:-----:|:------:|:------:|:-------:|
+| `vsearch/vdr-nq` | 42.30 | 66.68 | 73.66  | 79.20  |  86.81  |
+| `vsearch/svdr-nq`| 49.56 | 69.53 | 75.46  | 80.61  |  87.01  |
