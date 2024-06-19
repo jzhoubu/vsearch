@@ -48,14 +48,12 @@ This repository includes:
 1. [Preparation](#-preparation)
     - Setup Environment
     - Download Data
-    - Testing
 
 2. [Quick Start](#-quick-start)
     - Text-to-text Retrieval
-    - Cross-modal Retrieval
     - Disentanglement and Reasoning
-    - Visualization
     - Semi-parametric Search
+    - Cross-modal Retrieval
 
 3. [Training](#-training)
 
@@ -66,10 +64,7 @@ This repository includes:
 
 ## 💻 Preparation
 
-<details>
-<summary>Setup Environment</summary>
-
-### Setup Environment via poetry (suggested)
+### Setup Environment via Poetry
 
 ```
 # install poetry first
@@ -78,6 +73,7 @@ poetry install
 poetry shell
 ```
 
+<!--
 ### Setup Environment via pip
 
 ```
@@ -85,11 +81,10 @@ conda create -n vdr python=3.9
 conda activate vdr
 pip install -r requirements.txt
 ```
+-->
 
-</details>
 
-<details>
-<summary>Download Data</summary>
+### Download Data
 
 Download data using identifiers in the YAML configuration files at `conf/data_stores/*.yaml`.
 
@@ -101,9 +96,9 @@ python download.py nq_train trivia_train
 # Download all dataset files:
 python download.py all
 ```
-</details>
 
 
+<!--
 <details>
 <summary>Testing</summary>
 
@@ -114,7 +109,7 @@ python -m test.quick_start
 # tensor([[0.3209, 0.0984]])
 ```
 </details>
-
+-->
 
 ## 🚀 Quick Start
 
@@ -122,93 +117,76 @@ python -m test.quick_start
 <summary>Text-to-text Retrieval</summary>
 
 ```python
->>> import torch
->>> from src.ir import Retriever
-
-# Initialize the retriever
->>> vdr_text2text = Retriever.from_pretrained("vsearch/vdr-nq")
-
-# Set up the device
->>> device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
->>> vdr_text2text = vdr_text2text.to(device)
+import torch
+from src.ir import Retriever
 
 # Define a query and a list of passages
->>> query = "What are the benefits of drinking green tea?"
->>> passages = [
-...     "Green tea is known for its antioxidant properties, which can help protect cells from damage caused by free radicals. It also contains catechins, which have been shown to have anti-inflammatory and anti-cancer effects. Drinking green tea regularly may help improve overall health and well-being.",
-...     "The history of coffee dates back to ancient times, with its origins in Ethiopia. Coffee is one of the most popular beverages in the world and is enjoyed by millions of people every day.",
-...     "Yoga is a mind-body practice that combines physical postures, breathing exercises, and meditation. It has been practiced for thousands of years and is known for its many health benefits, including stress reduction and improved flexibility.",
-...     "Eating a balanced diet that includes a variety of fruits, vegetables, whole grains, and lean proteins is essential for maintaining good health. It provides the body with the nutrients it needs to function properly and can help prevent chronic diseases."
-... ]
+query = "Who first proposed the theory of relativity?"
+passages = [
+    "Albert Einstein (14 March 1879 – 18 April 1955) was a German-born theoretical physicist who is widely held to be one of the greatest and most influential scientists of all time. He is best known for developing the theory of relativity.",
+    "Sir Isaac Newton FRS (25 December 1642 – 20 March 1727) was an English polymath active as a mathematician, physicist, astronomer, alchemist, theologian, and author who was described in his time as a natural philosopher.",
+    "Nikola Tesla (10 July 1856 – 7 January 1943) was a Serbian-American inventor, electrical engineer, mechanical engineer, and futurist. He is known for his contributions to the design of the modern alternating current (AC) electricity supply system."
+]
+
+# Initialize the retriever
+svdr = Retriever.from_pretrained("vsearch/svdr-nq")
+svdr = svdr.to("cuda")
 
 # Embed the query and passages
->>> q_emb = vdr_text2text.encoder_q.embed(query)  # Shape: [1, V]
->>> p_emb = vdr_text2text.encoder_p.embed(passages)  # Shape: [4, V]
+q_emb = svdr.encoder_q.embed(query)  # Shape: [1, V]
+p_emb = svdr.encoder_p.embed(passages)  # Shape: [4, V]
 
  # Query-passage Relevance
->>> scores = q_emb @ p_emb.t()
->>> print(scores)
+scores = q_emb @ p_emb.t()
+print(scores)
 
 # Output: 
-# tensor([[91.1257, 17.6930, 13.0358, 12.4576]], device='cuda:0')
+# tensor([[62.6829, 12.0408, 10.5600]], device='cuda:0')
 ```
 </details>
 
-
-<details>
-<summary>Cross-modal Retrieval</summary>
-
-```python
-# Note: we use `encoder_q` for text and `encoder_p` for image
->>> vdr_cross_modal = Retriever.from_pretrained("vsearch/vdr-cross-modal") 
-
->>> image_file = './examples/images/mars.png'
->>> texts = [
-...     "Four thousand Martian days after setting its wheels in Gale Crater on Aug. 5, 2012, NASA’s Curiosity rover remains busy conducting exciting science. The rover recently drilled its 39th sample then dropped the pulverized rock into its belly for detailed analysis.",
-...     "ChatGPT is a chatbot developed by OpenAI and launched on November 30, 2022. Based on a large language model, it enables users to refine and steer a conversation towards a desired length, format, style, level of detail, and language."
-... ]
->>> image_emb = vdr_cross_modal.encoder_p.embed(image_file) # Shape: [1, V]
->>> text_emb = vdr_cross_modal.encoder_q.embed(texts)  # Shape: [2, V]
-
-# Image-text Relevance
->>> scores = image_emb @ text_emb.t()
->>> print(scores)
-
-# Output: 
-# tensor([[0.3209, 0.0984]])
-```
-</details>
 
 
 <details>
 <summary>Disentanglement and Reasoning</summary>
 
-### Data Disentanglement
+### Disentanglement and Reasoning
 ```python
+import torch
+from src.ir import Retriever
+
+query = "Who first proposed the theory of relativity?"
+passages = [
+    "Albert Einstein (14 March 1879 – 18 April 1955) was a German-born theoretical physicist who is widely held to be one of the greatest and most influential scientists of all time. He is best known for developing the theory of relativity.",
+    "Sir Isaac Newton FRS (25 December 1642 – 20 March 1727) was an English polymath active as a mathematician, physicist, astronomer, alchemist, theologian, and author who was described in his time as a natural philosopher.",
+    "Nikola Tesla (10 July 1856 – 7 January 1943) was a Serbian-American inventor, electrical engineer, mechanical engineer, and futurist. He is known for his contributions to the design of the modern alternating current (AC) electricity supply system."
+]
+
+# Initialize the retriever
+svdr = Retriever.from_pretrained("vsearch/svdr-nq")
+svdr = svdr.to("cuda")
+
 # Disentangling query embedding
->>> disentanglement = vdr_text2text.encoder_q.dst(query, topk=768, visual=True) # Generate a word cloud if `visual`=True
->>> print(disentanglement)
+dst_result = svdr.encoder_q.dst(query, topk=768, visual=False) # Generate a word cloud if `visual`=True
+print(dst_result)
 
 # Output: 
 # {
-#     'tea': 6.9349799156188965,
-#     'green': 5.861555576324463,
-#     'bitter': 4.233378887176514,
+#     'relativity': 6.1560163497924805, 
+#     'tensor': 3.383471727371216, 
+#     'gravitational': 3.117488145828247, 
 #     ...
 # }
-```
 
-### Retrieval Reasoning
-```python
-# Retrieval reasoning on query-passage match
->>> reasons = vdr_text2text.explain(q=query, p=passages[0], topk=768, visual=True)
->>> print(reasons)
+# Retrieval reasoning
+reasons = svdr.explain(q=query, p=passages[0], topk=768, visual=False)
+print(reasons)
 
 # Output: 
 # {
-#     'tea': 41.2425175410242,
-#     'green': 38.784010452150596,
-#     'effects': 1.1575102038585783,
+#     'relativity': 39.76305470546913, 
+#     'einstein': 6.619070599316387, 
+#     'theory': 3.57103090893213, 
 #     ...
 # }
 ```
@@ -220,20 +198,45 @@ python -m test.quick_start
 ### Alpha search
 ```python
 # non-parametric query -> parametric passage
->>> q_bin = vdr.encoder_q.embed(query, bow=True)
->>> p_emb = vdr.encoder_p.embed(passages)
->>> scores = q_bin @ p_emb.t()
+q_bin = svdr.encoder_q.embed(query, bow=True)
+p_emb = svdr.encoder_p.embed(passages)
+scores = q_bin @ p_emb.t()
 ```
 
 ### Beta search
 ```python
 # parametric query -> non-parametric passage (binary token index)
->>> q_emb = vdr.encoder_q.embed(query)
->>> p_bin = vdr.encoder_p.embed(passages, bow=True)
->>> scores = q_emb @ p_bin.t()
+q_emb = svdr.encoder_q.embed(query)
+p_bin = svdr.encoder_p.embed(passages, bow=True)
+scores = q_emb @ p_bin.t()
 ```
 </details>
 
+<details>
+<summary>Cross-modal Retrieval</summary>
+
+```python
+# Note: we use `encoder_q` for text and `encoder_p` for image
+vdr_cross_modal = Retriever.from_pretrained("vsearch/vdr-cross-modal") 
+
+image_file = './examples/images/mars.png'
+texts = [
+  "Four thousand Martian days after setting its wheels in Gale Crater on Aug. 5, 2012, NASA’s Curiosity rover remains busy conducting exciting science. The rover recently drilled its 39th sample then dropped the pulverized rock into its belly for detailed analysis.",
+  "ChatGPT is a chatbot developed by OpenAI and launched on November 30, 2022. Based on a large language model, it enables users to refine and steer a conversation towards a desired length, format, style, level of detail, and language."
+]
+image_emb = vdr_cross_modal.encoder_p.embed(image_file) # Shape: [1, V]
+text_emb = vdr_cross_modal.encoder_q.embed(texts)  # Shape: [2, V]
+
+# Image-text Relevance
+scores = image_emb @ text_emb.t()
+print(scores)
+
+# Output: 
+# tensor([[0.3209, 0.0984]])
+```
+</details>
+
+<!--
 <details>
 <summary>Visualization</summary>
 
@@ -242,7 +245,7 @@ python -m test.quick_start
 </div>
 
 </details>
-
+-->
 
 ## 👾 Training
 We are testing on `python==3.9` and `torch==2.2.1`. Configuration is handled through `hydra==1.3.2`.
