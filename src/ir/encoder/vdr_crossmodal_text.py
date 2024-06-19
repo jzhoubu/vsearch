@@ -141,7 +141,7 @@ class VDRTextEncoder(PreTrainedModel):
         topk_tokens = self.tokenizer.convert_ids_to_tokens(topk_token_ids)
         results = dict(zip(topk_tokens,topk_values))
         if visual:
-            wordcloud_from_dict(results, k=topk, save_file=save_file)
+            wordcloud_from_dict(results, max_words=topk, save_file=save_file)
         return results
 
     dst = disentangle
