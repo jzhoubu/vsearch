@@ -29,6 +29,3 @@ train_sampling_rates:
 # info
 log_batch_step: 100
 train_rolling_loss_step: 100
-
-# checkpoint file to initialize the model
-model_file:

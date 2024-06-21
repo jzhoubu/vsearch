@@ -3,20 +3,19 @@ HOME: /export/data/jzhoubu/workspace/vsearch
 defaults:
   - biencoder: vdr
   - data_stores: wiki21m
-  - index_stores:
+  - index_stores: wiki21m
   - train: vdr_nq
 
 train_datasets: 
 dev_datasets: 
 index: 
 output_dir: 
-
+model_path: 
 
 # Whether to lower case the input text. Set True for uncased models, False for the cased ones.
 do_lower_case: True
 seed: 12345
-save_name_prefix: vdr
-
+save_name_prefix: checkpoint
 
 # local_rank for distributed training on gpus
 local_rank: -1

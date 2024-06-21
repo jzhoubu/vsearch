@@ -13,4 +13,6 @@ webq_train:
   file: data/train/webq-train.jsonl
   download_link: https://huggingface.co/datasets/vsearch/webq/resolve/main/train.jsonl.gz
 
-
+rag_nq_train:
+  _target_: src.rag.data_utils.RAGDataset
+  file: /export/data/jzhoubu/workspace/vsearch/data/train/rag-nq-train.jsonl

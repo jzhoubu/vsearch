@@ -9,7 +9,7 @@ num_warmup_epochs: 1
 num_epoch_to_save: 10
 num_epoch_to_eval: 1
 sym_loss: True
-semi: False
+semi: True
 
 # negative
 hard_negatives: 1

@@ -6,7 +6,6 @@ import sys
 from typing import Tuple
 import hydra
 import torch
-import omegaconf
 from omegaconf import DictConfig, OmegaConf
 from torch.cuda.amp import autocast
 import torch.distributed as dist
@@ -44,13 +43,12 @@ class RetrieverTrainer(object):
 
     def init_retriever(self):
         logger.info("***** Initializing components for training *****")
-        _model_cfg = omegaconf.OmegaConf.to_container(self.cfg.biencoder)        
-        retriever_cfg = RetrieverConfig(**_model_cfg)
-
-        if self.cfg.train.model_file is not None:
-            logger.info(f"***** Loading checkpoint from {self.cfg.train.model_file} *****")
-            model = Retriever.from_pretrained(self.cfg.train.model_file, config=retriever_cfg)
+        if self.cfg.model_path:
+            logger.info(f"***** Loading checkpoint from {self.cfg.model_path} *****")
+            model = Retriever.from_pretrained(self.cfg.model_path)
         else:
+            biencoder_cfg = OmegaConf.to_container(self.cfg.biencoder)        
+            retriever_cfg = RetrieverConfig(**biencoder_cfg)
             model = Retriever(retriever_cfg)
 
         if hasattr(self.cfg, "index") and self.cfg.index is not None:
@@ -232,7 +230,7 @@ def main(cfg: DictConfig):
 
     if cfg.train_datasets and len(cfg.train_datasets) > 0:
         trainer.run_train()
-    elif cfg.train.model_file and cfg.dev_datasets:
+    elif cfg.model_path and cfg.dev_datasets:
         logger.info("No train files are specified. Run validation only. ")
     else:
         logger.info("Neither train_file or dev_file are specified.")
