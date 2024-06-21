@@ -31,8 +31,8 @@ if __name__ == "__main__":
     logger.info(args)
 
     logger.info(f"### Loading Model: {args.checkpoint} ###")
-    vdr = Retriever.from_pretrained(args.checkpoint)
-    vdr = vdr.to(args.device)
+    retriever = Retriever.from_pretrained(args.checkpoint)
+    retriever = retriever.to(args.device)
 
     logger.info(f"### Loading Query: {args.query_file} ###")
     ids = []
@@ -46,7 +46,7 @@ if __name__ == "__main__":
             elif isinstance(sample, dict):
                 ids.append(sample['_id'])
                 queries.append(sample['text'])
-    q_embs = vdr.encoder_q.embed(queries, topk=args.activation_q, training=False, batch_size=32, verbose=True)
+    q_embs = retriever.encoder_q.embed(queries, topk=args.activation_q, batch_size=32)
     q_embs = q_embs.to(args.device)
 
     # process index
@@ -67,7 +67,7 @@ if __name__ == "__main__":
         for i in tqdm(range(0, N, args.batch_size_p)):
             batch = data_shard[i: i + args.batch_size_p]
             batch_pt = scipy_csr_to_torch_csr(batch)
-            batch_pt = batch_pt.to(vdr.device).to_sparse_csr()
+            batch_pt = batch_pt.to(args.device)
             batch_results = torch.matmul(q_embs, batch_pt.t())
             topk_values, topk_indices = batch_results.topk(args.topk)
             topk_values = topk_values.tolist()

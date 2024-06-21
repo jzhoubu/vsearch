@@ -40,8 +40,6 @@ The large-scale retrieval inference process generally involves three key steps:
 
 ### 1. Building a Dense Index
 
-For efficient retrieval from a large corpus, you need to build a dense index. Below are the steps to create and save a dense index of your text data.
-
 #### Creating the Text File for Indexing
 
 Prepare your text data in a JSONL format:
@@ -132,7 +130,7 @@ Evaluate and score the search results for wiki21m benchmark:
 python -m inference.score.eval_wiki21m \
     --result_file=experiment/inference_dense_example/results/search_result.json \
     --text_file=data/corpus/wiki21m.jsonl \
-    --qa_file=data/eval/wiki21m/nq-test.qa.csv
+    --qa_file=data/eval/wiki21m/nq-test.qa.csv \
 ```
 - `--result_file`: Path to search results (`.json` format).
 - `--qa_file`: Path to DPR-provided qa file (`.csv` format, provided by DPR repo)

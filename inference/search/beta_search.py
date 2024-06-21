@@ -34,8 +34,8 @@ if __name__ == "__main__":
     logger.info(args)
 
     logger.info(f"***** Loading Model: {args.checkpoint} *****")
-    vdr = Retriever.from_pretrained(args.checkpoint)
-    vdr = vdr.to(args.device)
+    retriever = Retriever.from_pretrained(args.checkpoint)
+    retriever = retriever.to(args.device)
 
     logger.info(f"***** Loading Query: {args.query_file} *****")
     ids = []
@@ -60,24 +60,24 @@ if __name__ == "__main__":
     logger.info(f"***** Loading Binary Token Index: {args.index_file} *****")
     index = BinaryTokenIndex(index_file=args.index_file, fp16=True, device=args.device)
     index.data = data
-    vdr.index = index
+    retriever.index = index
     TENSOR_FLAG = args.device!='cpu'
     logger.info(f"***** Start Beta Search *****") 
     num_ret = max(args.topk, args.num_rerank)
     results = {}
     for i in tqdm(range(0, len(queries), args.batch_size_q)):
         questions_batch = queries[i: i+args.batch_size_q]
-        q_emb = vdr.encoder_q.embed(questions_batch, batch_size=32, convert_to_tensor=TENSOR_FLAG)
-        batch_results = vdr.retrieve(q_emb, a=768, k=num_ret)
+        q_emb = retriever.encoder_q.embed(questions_batch, batch_size=32, convert_to_tensor=TENSOR_FLAG)
+        batch_results = retriever.retrieve(q_emb, a=768, k=num_ret)
         ret_indices, ret_scores = batch_results.ids, batch_results.scores
 
         if args.num_rerank > 0:
             ret_indices_to_rerank = ret_indices[:, :args.num_rerank]
             ret_texts_to_rerank = [data[i] for i in ret_indices_to_rerank.flatten().tolist()]
-            p_embs_to_rerank = vdr.encoder_p.embed(ret_texts_to_rerank, batch_size=32)
+            p_embs_to_rerank = retriever.encoder_p.embed(ret_texts_to_rerank, batch_size=32)
             p_embs_to_rerank = p_embs_to_rerank.view(-1, args.num_rerank, q_emb.shape[-1])
-            p_embs_to_rerank = p_embs_to_rerank.to(vdr.device)
-            rerank_results = torch.bmm(p_embs_to_rerank, q_emb.unsqueeze(-1).to(vdr.device)).squeeze()
+            p_embs_to_rerank = p_embs_to_rerank.to(args.device)
+            rerank_results = torch.bmm(p_embs_to_rerank, q_emb.unsqueeze(-1).to(args.device)).squeeze()
             rerank_scores, rerank_indices = rerank_results.topk(args.num_rerank)
             ret_indices[:, :args.num_rerank] = ret_indices[torch.arange(ret_indices.size(0)).unsqueeze(1), rerank_indices.cpu()]
             ret_scores[:, :args.num_rerank] = ret_scores[torch.arange(ret_indices.size(0)).unsqueeze(1), rerank_indices.cpu()]

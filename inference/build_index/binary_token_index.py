@@ -5,7 +5,7 @@ The output is a binary sparse matrix, saved in .npz format.
 Example Command:
 TEXT=/path/to/your/textfile.jsonl
 SAVE=/path/to/save/index.npz
-python -m pipelines.build_index.binary_token_index --text_file=$TEXT --save_file=$SAVE --batch_size=32
+python -m inference.build_index.binary_token_index --text_file=$TEXT --save_file=$SAVE --batch_size=32
 """
 
 import logging

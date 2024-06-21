@@ -6,13 +6,14 @@ from src.ir import Retriever
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-p', '--text_file')
-    parser.add_argument('-c', '--checkpoint', default='jzhoubu/dpr-nq')
+    parser.add_argument('-p', '--text_file', required=True, help='Path to the text file to be indexed.')
+    parser.add_argument('-s', '--save_file', required=True, help='Path where the output .pt index file will be saved.')
+    parser.add_argument('-c', '--checkpoint', default='vsearch/dpr-nq', type=str, help='Path to the model checkpoint.') 
     parser.add_argument('-bs', '--batch_size', default=256, type=int)
     parser.add_argument('-n', '--num_shard', default=1, type=int)
     parser.add_argument('-i', '--shard_id', default=0, type=int)
     parser.add_argument('-d', '--device', default="cuda", type=str)
-    parser.add_argument('-s', '--save_dir', default='./')    
+
     args = parser.parse_args()
     
     print(args)
@@ -22,7 +23,7 @@ if __name__ == "__main__":
     dpr = dpr.to(args.device)
 
     print(f"### Load Text: {args.text_file} ###")
-    print(f"### Shard {args.shard_id}/{args.num_shard} ###")
+    print(f"### Shard {args.shard_id+1}/{args.num_shard} ###")
     texts = [json.loads(l) for l in open(args.text_file, 'r')]
     shard_size = len(texts) // args.num_shard
     text_shard = texts[args.shard_id * shard_size : (args.shard_id+1) * shard_size]
@@ -36,9 +37,6 @@ if __name__ == "__main__":
     
     p_emb = torch.cat(p_embs, dim=0)
     print(p_emb.shape)
-    str_len = len(str(args.num_shard))
-    shard_id_str = str(args.shard_id).zfill(str_len)
-    save_file = f"{args.save_dir}/shard{shard_id_str}.pt"
-    print(f"### Save torch tensor to: {save_file} ###")
-    torch.save(p_emb, save_file)
+    print(f"### Save torch tensor to: {args.save_file} ###")
+    torch.save(p_emb, args.save_file)
     

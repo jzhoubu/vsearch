@@ -46,7 +46,7 @@ if __name__ == "__main__":
     # Optional arguments
     # parser.add_argument('-o', '--output_file', type=str, default=None, help="Output file for evaluation results.")
     parser.add_argument('-bs', '--batch_size', type=int, default=32, help="Batch size for evaluation.")
-    parser.add_argument('-k', '--k', type=list, default=[1,5,20], help="List of k values for top-k accuracy evaluation.")
+    parser.add_argument('-k', '--k', type=list, default=[1,5,10,20,100], help="List of k values for top-k accuracy evaluation.")
 
     args = parser.parse_args()
     print(args)
