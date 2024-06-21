@@ -1,3 +1,4 @@
+import re
 from collections import OrderedDict
 
 class InfoCard():
@@ -15,6 +16,10 @@ class InfoCard():
     def add_title_line(self, title=None):
         if title:
             self.info += f"{title:{'='}^{self.width}}\n"
+
+    def pad_line(self, line):
+        padded_line = line.ljust(self.width)
+        return padded_line + '\n'
 
     def token_to_rank(self, emb):
         sorted_index = emb.topk(emb.shape[0]).indices.detach().cpu().numpy().tolist()        
@@ -40,7 +45,8 @@ class InfoCard():
         self.info += stat_info + "\n"
 
     def add_text_info(self, text, title=None):
-        text = self.tidy_item(f"{text}".split())
+        text_items = re.split(r'(\s+)', text)
+        text = self.tidy_item(text_items)
         title = title or " TEXT "
         title = f"{title:{'='}^{self.width}}"
         self.info += f"{title}\n{text}\n"
@@ -50,10 +56,12 @@ class InfoCard():
         assert descs is None or len(texts) == len(descs)
         for i, text in enumerate(texts):
             if descs:
-                self.info += self.tidy_item(f"{descs[i]}: {text}".split()) + "\n"
+                text = f"{descs[i]}: {text}"
+                text_items = re.split(r'(\s+)', text)
+                self.info += self.tidy_item(text_items) + "\n\n"
             else:
-                self.info += self.tidy_item(f"{text}".split()) + "\n"
-
+                text_items = re.split(r'(\s+)', text)
+                self.info += self.tidy_item(text_items) + "\n\n"
 
     def add_interaction_info(self, q_emb, p_emb, p2_emb=None, k=20, title=None):
         self.add_title_line(title)
@@ -129,7 +137,11 @@ class InfoCard():
         info = ""
         row = ""
         for item in items:
-            if len(row) + len(str(item)) < self.width:
+            if item in ["\n", "\n\n"]:
+                row = self.pad_line(row)
+            elif item.isspace():
+                pass
+            elif len(row) + len(str(item)) < self.width:
                 row += f"{item} "
             else:
                 info += row + "\n"

@@ -94,7 +94,7 @@ class BinaryTokenIndex(Index):
     def __repr__(self):
         return repr(self.vector)
 
-    def __str__(self, max_len=50):
+    def __str__(self):
         info = (
             f'Index Type      : {type(self).__name__}\n'
             f'Vector Type     : {self.vector.layout}\n'

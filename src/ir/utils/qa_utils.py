@@ -4,7 +4,7 @@ Most of the tokenizers code here is copied from DrQA codebase to avoid adding ex
 
 import copy
 import logging
-
+import csv
 import regex
 import spacy
 import re
@@ -282,3 +282,13 @@ def has_answer(answers, text, match_type) -> bool:
             if regex_match(text, single_answer):
                 return True
     return False
+
+def parse_qa_csv_file(location):
+    res = []
+    with open(location) as ifile:
+        reader = csv.reader(ifile, delimiter="\t")
+        for row in reader:
+            question = row[0]
+            answers = eval(row[1])
+            res.append((question, answers))
+    return res

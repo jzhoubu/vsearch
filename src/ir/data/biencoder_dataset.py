@@ -45,7 +45,8 @@ class BiEncoderDataset(torch.utils.data.Dataset):
         self.norm = norm
         self.shuffle_positives = shuffle_positives
         self.download_link = download_link
-
+        self.data = []
+        
     def load_data(self, require_positive=True, require_hard_negative=True):
         if self.file.endswith("jsonl"):
             data = [json.loads(sample) for sample in open(self.file, "r")]
