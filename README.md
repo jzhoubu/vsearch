@@ -37,6 +37,7 @@ This repository includes:
 -->
 
 ## What's News 🔥
+- 2024-06-21: We release examples and results of dense and sparse retrieval for large-scale inference on local data. Check details in `examples/inference_dense` and `examples/inference_sparse`.
 - 2024-05-17: We launched the training code and pipeline.
 - 2024-05-08: We launched a semi-parametric inference pipeline (for low-resource, efficient, large-scale retrieval).
 - 2024-05-06: SVDR: [Semi-Parametric Retrieval via Binary Token Index](https://arxiv.org/pdf/2405.01924) has been published on arXiv.
@@ -301,8 +302,6 @@ For dense retrieval (DPR) inference, please see detailed documentation [here](ex
 For sparse retrieval (VDR) inference, please see detailed documentation [here](examples/inference_sparse/README.md).
 
 ---
-
-
 
 For semi-parametric retrieval (SVDR) inference, see below:
 
