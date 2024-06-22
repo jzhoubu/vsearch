@@ -139,7 +139,7 @@ class InfoCard():
         for item in items:
             if item in ["\n", "\n\n"]:
                 row = self.pad_line(row)
-            elif item.isspace():
+            elif str(item).isspace():
                 pass
             elif len(row) + len(str(item)) < self.width:
                 row += f"{item} "
