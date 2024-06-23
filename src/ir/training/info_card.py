@@ -71,21 +71,21 @@ class InfoCard():
         token_to_rank_qp = self.token_to_rank(q_emb * p_emb)
 
         token_to_rank2_q = [(t, token_to_rank_q[t], token_to_rank_p[t]) for t, _ in token_to_rank_q.items()][:k]
-        self.add_title_line(' v_q => (t, qrank, prank)')
+        self.add_title_line(' V(q) => (t, qrank, prank)')
         self.info += self.tidy_item(token_to_rank2_q) + "\n"
         
         token_to_rank2_p = [(t, token_to_rank_q[t], token_to_rank_p[t]) for t, _ in token_to_rank_p.items()][:k]
-        self.add_title_line(' v_p => (t, qrank, prank)')
+        self.add_title_line(' V(p) => (t, qrank, prank)')
         self.info += self.tidy_item(token_to_rank2_p) + "\n"
 
         if p2_emb is not None:
             token_to_rank_p_neg = self.token_to_rank(p2_emb)
             token_to_rank2_p_neg = [(t, token_to_rank_q[t], token_to_rank_p_neg[t]) for t, _ in token_to_rank_p_neg.items()][:k]
-            self.add_title_line(' v_p_neg => (t, qrank, pnegrank) ')
+            self.add_title_line(' V(p_neg) => (t, qrank, pnegrank) ')
             self.info += self.tidy_item(token_to_rank2_p_neg) + "\n"
 
         token_to_rank2_qp = [(t, token_to_rank_q[t], token_to_rank_p[t]) for t, _ in token_to_rank_qp.items()][:k]
-        self.add_title_line(' v_q * v_p => (t, qrank, prank)')
+        self.add_title_line(' V(q) * V(p) => (t, qrank, prank)')
         self.info += self.tidy_item(token_to_rank2_qp) + "\n"
 
 
@@ -107,13 +107,13 @@ class InfoCard():
         k = 20
         q_topk_tokens = [(t, rank, token2prank[t]) for t,rank in token2qrank.items()][:k]
         disentangle_info = self.tidy_item(q_topk_tokens)
-        q_emb_name = ' v_q '
+        q_emb_name = ' V(q) '
         disentangle_title = f"{q_emb_name :{'='}^{self.width}}"
         self.info += f"{disentangle_title}\n{disentangle_info}" + "\n"
         
         p_topk_tokens = [(t, token2qrank[t], rank) for t,rank in token2prank.items()][:k]
         disentangle_info = self.tidy_item(p_topk_tokens)
-        p_emb_name = ' v_p '
+        p_emb_name = ' V(p) '
         disentangle_title = f"{p_emb_name :{'='}^{self.width}}"
         self.info += f"{disentangle_title}\n{disentangle_info}" + "\n"
         
@@ -121,13 +121,13 @@ class InfoCard():
             token2negrank = self.get_token_to_rank(p_neg_emb)
             p_neg_topk_tokens = [(t, token2qrank[t], rank) for t,rank in token2negrank.items()][:k]
             disentangle_info = self.tidy_item(p_neg_topk_tokens)
-            p_neg_emb_name = ' v_p_neg '         
+            p_neg_emb_name = ' V(p_neg) '         
             disentangle_title = f"{p_neg_emb_name :{'='}^{self.width}}"
             self.info += f"{disentangle_title}\n{disentangle_info}" + "\n"
             
         sim_topk_tokens = [(t, token2qrank[t], token2prank[t]) for t,rank in token2simrank.items()][:k]
         disentangle_info = self.tidy_item(sim_topk_tokens)
-        title = f' v_q * v_p '
+        title = f' V(q) * V(p) '
         disentangle_title = f"{title :{'='}^{self.width}}"
         self.info += f"{disentangle_title}\n{disentangle_info}" + "\n"
 
