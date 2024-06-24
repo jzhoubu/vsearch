@@ -12,14 +12,17 @@ from .info_card import InfoCard
 
 logger = logging.getLogger(__name__)
 
-def fetch_global_vectors(v_local, bow_local, k=768):
-    topk_mask = build_topk_mask(v_local, k=k)
+
+
+
+def fetch_global_vectors(emb_local, bow_local, k=768):
+    topk_mask = build_topk_mask(emb_local, k=k)
     topk_mask = torch.logical_or(topk_mask, bow_local)
-    v_topk_local = v_local * topk_mask
-    v_topk_global = torch.cat(GatherLayer.apply(v_topk_local), dim=0)
-    v_global = torch.cat(GatherLayer.apply(v_local), dim=0)
+    emb_sparse_local = emb_local * topk_mask
+    emb_sparse_global = torch.cat(GatherLayer.apply(emb_sparse_local), dim=0)
+    emb_dense_global = torch.cat(GatherLayer.apply(emb_local), dim=0)
     bow_global = torch.cat(GatherLayer.apply(bow_local), dim=0)
-    return v_global, v_topk_global, bow_global
+    return emb_dense_global, emb_sparse_global, bow_global
 
 def _do_biencoder_fwd_pass(
     cfg,

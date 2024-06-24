@@ -13,10 +13,10 @@ def build_topk_mask(embs: Union[torch.Tensor, np.ndarray], k: int = 768, dim: in
     topk_mask.scatter_(dim=-1, index=indices, value=1)
     return topk_mask
 
-def topk_sparsify(embs: torch.Tensor, k: int, dim: int = -1):
-    topk_mask = build_topk_mask(embs, k=k, dim=dim)
-    embs *= topk_mask
-    return embs
+def topk_sparsify(emb_dense: torch.Tensor, k: int, dim: int = -1):
+    topk_mask = build_topk_mask(emb_dense, k=k, dim=dim)
+    emb_sparse = emb_dense * topk_mask
+    return emb_sparse
 
 
 def build_bow_mask(text_ids, vocab_size=30522, shift_num=0, norm=False):
