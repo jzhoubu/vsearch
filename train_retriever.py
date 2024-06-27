@@ -94,8 +94,6 @@ class RetrieverTrainer(object):
         logger.info(" Total updates=%d", total_updates)
         logger.info(" Warmup updates=%d", warmup_steps)
         scheduler = get_schedule_linear(self.optimizer, warmup_steps, total_updates)
-        eval_step = math.ceil(updates_per_epoch * cfg.train.num_epoch_to_eval)
-        logger.info(" Eval step = %d", eval_step)
         logger.info("***** Training *****")
 
         self.save_checkpoint("0")
@@ -209,7 +207,7 @@ class RetrieverTrainer(object):
         model_to_save = self.model.module if hasattr(self.model, "module") else self.model
         output_dir = cfg.output_dir if cfg.output_dir else "./"
         cp = os.path.join(output_dir, cfg.save_name_prefix + "_" + suffix)
-        model_to_save.save_pretrained(cp)    
+        model_to_save.save_pretrained(cp, safe_serialization=False) 
         logger.info("Saved checkpoint at %s", cp)
         return cp
 
