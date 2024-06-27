@@ -1,8 +1,14 @@
+import os
 import argparse
+import logging
 import json
 from tqdm import tqdm
 import torch
 from src.ir import Retriever
+
+logging.basicConfig(level = logging.INFO)
+logger = logging.getLogger()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -26,17 +32,21 @@ if __name__ == "__main__":
     print(f"### Shard {args.shard_id+1}/{args.num_shard} ###")
     texts = [json.loads(l) for l in open(args.text_file, 'r')]
     shard_size = len(texts) // args.num_shard
-    text_shard = texts[args.shard_id * shard_size : (args.shard_id+1) * shard_size]
+    shard_texts = texts[args.shard_id * shard_size : (args.shard_id+1) * shard_size]
 
     p_embs = []
-    for i in tqdm(range(0, len(text_shard), 10000)):
-        batch_texts = text_shard[i:i+10000]
+    for i in tqdm(range(0, len(shard_texts), args.batch_size)):
+        batch_texts = shard_texts[i:i+args.batch_size]
         batch_p_emb = dpr.encoder_p.embed(batch_texts, batch_size=args.batch_size)
         batch_p_emb = batch_p_emb.cpu()
         p_embs.append(batch_p_emb)
     
     p_emb = torch.cat(p_embs, dim=0)
-    print(p_emb.shape)
-    print(f"### Save torch tensor to: {args.save_file} ###")
+
+    save_dir = os.path.dirname(args.save_file)
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir) 
     torch.save(p_emb, args.save_file)
-    
+
+    logger.info(f"***** Index save to: {args.save_file} *****")
+    logger.info(f"***** Index matrix shape: {p_emb.shape} *****")

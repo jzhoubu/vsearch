@@ -23,6 +23,8 @@ if __name__ == "__main__":
     parser.add_argument('-bs_p', '--batch_size_p', default=1000, type=int, help='Batch size of passages for exhaustive search.')
     parser.add_argument('-k', '--topk', default=100, type=int, help='Number of retrieved passages.')
     parser.add_argument('-d', '--device', default="cuda", type=str)
+    parser.add_argument('--fp16', default=True, type=bool)
+
     args = parser.parse_args()
 
     logger.info(args)
@@ -45,7 +47,8 @@ if __name__ == "__main__":
                 queries.append(sample['text'])
     q_embs = retriever.encoder_q.embed(queries, batch_size=32)
     q_embs = q_embs.to(args.device)
-
+    q_embs = q_embs.half() if args.fp16 else q_embs
+    
     # process index
     files = sorted(glob.glob(args.index_file))
     assert all([file.endswith('.pt') for file in files])
@@ -60,6 +63,7 @@ if __name__ == "__main__":
     for shard_id, file in enumerate(files):
         print(f"### Searching on Shard {shard_id+1}/{len(files)} ###")
         data_shard = torch.load(file, map_location=torch.device('cpu'))
+        data_shard = data_shard.half() if args.fp16 else data_shard
         N = data_shard.shape[0]
         for i in tqdm(range(0, N, args.batch_size_p)):
             batch = data_shard[i: i + args.batch_size_p]
