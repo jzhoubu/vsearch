@@ -62,7 +62,7 @@ class DPREncoder(PreTrainedModel):
         texts: Union[List[str], str], 
         batch_size: int = 128, 
         max_len: int = None, 
-        training: bool = False,
+        require_grad: bool = False,
         to_cpu: bool = False,
         convert_to_tensor: bool = True,
         show_progress_bar: bool = False,
@@ -70,9 +70,12 @@ class DPREncoder(PreTrainedModel):
 
         max_len = max_len or self.config.max_len
         texts = [texts] if isinstance(texts, str) else texts
-        if not training and self.training:
+        is_training = self.training
+
+        if not require_grad:
             self.eval()
-        with torch.no_grad() if not training else nullcontext():
+            
+        with torch.no_grad() if not require_grad else nullcontext():
             batch_embs = []
             num_text = len(texts)
             iterator = range(0, num_text, batch_size)
@@ -86,4 +89,8 @@ class DPREncoder(PreTrainedModel):
                 emb = emb.cpu().numpy()
             elif to_cpu:
                 emb = emb.cpu()
+        
+        if is_training:
+            self.train()
+
         return emb

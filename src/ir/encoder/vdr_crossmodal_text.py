@@ -78,7 +78,7 @@ class VDRTextEncoder(PreTrainedModel):
         max_len: int = None, 
         topk: int = None,
         bow: bool = False, 
-        training: bool = False,
+        require_grad: bool = False,
         verbose: bool = False,
     ) -> T:
         """Embeds texts into lexical representations.
@@ -92,7 +92,7 @@ class VDRTextEncoder(PreTrainedModel):
                 - If topk=-1 or None, activate all the dimensions;
                 - Otherwise, acitvate only top-k dimension. 
             bow (bool): If True, embeds texts into binary token representations.
-            training (bool): If True, keeps gradients for backpropagation. 
+            require_grad (bool): If True, keeps gradients for backpropagation. 
             verbose (bool): If True, displays embedding progress. 
 
         Returns:
@@ -102,12 +102,13 @@ class VDRTextEncoder(PreTrainedModel):
 
         max_len = max_len or self.config.max_len
         topk = topk or self.config.topk
-        if isinstance(texts, str):
-            texts = [texts]
-        if not training and self.training:
+        texts = [texts] if isinstance(texts, str) else texts
+        is_training = self.training
+
+        if not require_grad:
             self.eval()
 
-        with torch.no_grad() if not training else nullcontext():
+        with torch.no_grad() if not require_grad else nullcontext():
             batch_embs = []
             num_text = len(texts)
             iterator = range(0, num_text, batch_size)
@@ -130,6 +131,10 @@ class VDRTextEncoder(PreTrainedModel):
 
                 batch_embs.append(batch_emb)
             emb = torch.cat(batch_embs, dim=0)
+
+        if is_training:
+            self.train()
+            
         return emb
 
     def disentangle(self, text: str, topk: int = None, visual=False, save_file=None):
