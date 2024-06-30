@@ -53,9 +53,11 @@ class BiEncoder(PreTrainedModel):
         encoder_q_cfg = CONFIG_TYPES[config.encoder_q['type']](**config.encoder_q)
         encoder_p_cfg = CONFIG_TYPES[config.encoder_p['type']](**config.encoder_p)
         self.encoder_q = ENCODER_TYPES[encoder_q_cfg.type](encoder_q_cfg)
-        self.encoder_p = ENCODER_TYPES[encoder_p_cfg.type](encoder_p_cfg) if not self.config.shared_encoder else self.encoder_q
+        self.encoder_p = ENCODER_TYPES[encoder_p_cfg.type](encoder_p_cfg)
         self.default_batch_size = None
-
+        if self.config.shared_encoder:
+           self.encoder_p.load_state_dict(self.encoder_q.state_dict())
+        
     def forward(
         self,
         q_ids: T,

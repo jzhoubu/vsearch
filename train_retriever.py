@@ -207,7 +207,10 @@ class RetrieverTrainer(object):
         model_to_save = self.model.module if hasattr(self.model, "module") else self.model
         output_dir = cfg.output_dir if cfg.output_dir else "./"
         cp = os.path.join(output_dir, cfg.save_name_prefix + "_" + suffix)
-        model_to_save.save_pretrained(cp, safe_serialization=False) 
+        if self.cfg.biencoder.shared_encoder:
+            model_to_save.save_pretrained(cp, safe_serialization=False) 
+        else:
+            model_to_save.save_pretrained(cp) 
         logger.info("Saved checkpoint at %s", cp)
         return cp
 
