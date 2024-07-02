@@ -55,9 +55,11 @@ class BiEncoder(PreTrainedModel):
         self.encoder_q = ENCODER_TYPES[encoder_q_cfg.type](encoder_q_cfg)
         self.encoder_p = ENCODER_TYPES[encoder_p_cfg.type](encoder_p_cfg)
         self.default_batch_size = None
+        # TODO: hot-fix
         if self.config.shared_encoder:
-           self.encoder_p.load_state_dict(self.encoder_q.state_dict())
-        
+            self.encoder_p = self.encoder_q
+            self.encoder_q.config.max_len = max(encoder_q_cfg.max_len, encoder_p_cfg.max_len)
+
     def forward(
         self,
         q_ids: T,
@@ -67,7 +69,7 @@ class BiEncoder(PreTrainedModel):
         p_segments: T,
         p_attn_mask: T,
     ) -> Tuple[T, T]:
-
+        
         q_emb = self.encoder_q(q_ids, q_segments, q_attn_mask)
         p_emb = self.encoder_p(p_ids, p_segments, p_attn_mask)
         return q_emb, p_emb
