@@ -66,26 +66,12 @@ class BinaryTokenIndex(Index):
     def load_data(self, file):
         self.data = [json.loads(l) for l in open(file, 'r')]
 
-    def _cpu_search(self, q_embs: T, k: int) -> SearchResults:
-        q_embs = csr_array(q_embs.cpu())
-        scores = q_embs @ self.vector.transpose()
-        scores_topk = torch.Tensor(scores.toarray()).topk(k)
-        search_results = SearchResults(scores_topk.indices.cpu(), scores_topk.values.cpu())
-        return search_results
-
-    def _gpu_search(self, q_embs: T, k: int) -> SearchResults:
+    def search(self, q_embs: T, k: int) -> SearchResults:
         q_embs = q_embs.to(self.device).type(self.vector.dtype)
         with torch.no_grad():
-            scores = torch.matmul(self.vector, q_embs.t()).t()
+            scores = torch.matmul(q_embs, self.vector.t())
         scores_topk = scores.topk(k)
-        search_results = SearchResults(scores_topk.indices, scores_topk.values)
-        return search_results
-
-    def search(self, q_embs: T, k: int) -> SearchResults:
-        if self.device == "cpu":
-            results = self._cpu_search(q_embs, k)
-        else:
-            results = self._gpu_search(q_embs, k)
+        results = SearchResults(scores_topk.indices, scores_topk.values)        
         return results
 
     def __len__(self):
