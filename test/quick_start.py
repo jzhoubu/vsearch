@@ -2,11 +2,11 @@ import torch
 from src.ir import Retriever
 
 # Initialize the retriever
-vdr_text2text = Retriever.from_pretrained("vsearch/vdr-nq")
+svdr_text2text = Retriever.from_pretrained("vsearch/svdr-nq")
 
 # Set up the device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-vdr_text2text = vdr_text2text.to(device)
+svdr_text2text = svdr_text2text.to(device)
 
 # Define a query and a list of passages
 query = "What are the benefits of drinking green tea?"
@@ -18,16 +18,15 @@ passages = [
 ]
 
 # Embed the query and passages
-q_emb = vdr_text2text.encoder_q.embed(query, topk=768)  # Shape: [1, V]
-p_emb = vdr_text2text.encoder_p.embed(passages, topk=768)  # Shape: [4, V]
+q_emb = svdr_text2text.encoder_q.embed(query, topk=768)  # Shape: [1, V]
+p_emb = svdr_text2text.encoder_p.embed(passages, topk=768)  # Shape: [4, V]
 
 # Query-passage Relevance
 scores = q_emb @ p_emb.t()
 print(scores)
 
 # Output: 
-# tensor([[91.1257, 17.6930, 13.0358, 12.4576]], device='cuda:0')
-
+# tensor([[88.3123, 23.9107, 12.7908, 12.5917]], device='cuda:0')
 
 vdr_cross_modal = Retriever.from_pretrained("vsearch/vdr-cross-modal") # Note: encoder_p for images, encoder_q for text.
 
