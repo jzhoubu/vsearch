@@ -57,8 +57,8 @@ class BiEncoder(PreTrainedModel):
         self.default_batch_size = None
         # TODO: hot-fix
         if self.config.shared_encoder:
-            self.encoder_p = self.encoder_q
             self.encoder_q.config.max_len = max(encoder_q_cfg.max_len, encoder_p_cfg.max_len)
+            self.encoder_p = self.encoder_q
 
     def forward(
         self,
