@@ -18,6 +18,7 @@ if __name__ == "__main__":
     parser.add_argument('-bs', '--batch_size', default=256, type=int)
     parser.add_argument('-n', '--num_shard', default=1, type=int)
     parser.add_argument('-i', '--shard_id', default=0, type=int)
+    parser.add_argument('-l', '--max_len', default=256, type=int)
     parser.add_argument('-d', '--device', default="cuda", type=str)
 
     args = parser.parse_args()
@@ -37,7 +38,7 @@ if __name__ == "__main__":
     p_embs = []
     for i in tqdm(range(0, len(shard_texts), args.batch_size)):
         batch_texts = shard_texts[i:i+args.batch_size]
-        batch_p_emb = dpr.encoder_p.embed(batch_texts, batch_size=args.batch_size)
+        batch_p_emb = dpr.encode_corpus(batch_texts, batch_size=args.batch_size, max_len=args.max_len)
         batch_p_emb = batch_p_emb.cpu()
         p_embs.append(batch_p_emb)
     

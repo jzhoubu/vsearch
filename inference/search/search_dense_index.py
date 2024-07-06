@@ -8,9 +8,8 @@ import argparse
 import glob
 import os
 from tqdm import tqdm
-from scipy.sparse import load_npz
 from src.ir import Retriever
-
+logging.basicConfig(level = logging.INFO)
 logger = logging.getLogger()
 
 if __name__ == "__main__":
