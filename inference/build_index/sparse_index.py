@@ -22,12 +22,15 @@ import os
 import json
 import time
 import logging
+import torch
 from tqdm import tqdm
 from scipy.sparse import save_npz, csr_array, vstack
 from src.ir import Retriever
 
 logging.basicConfig(level = logging.INFO)
 logger = logging.getLogger()
+
+
 
 
 if __name__ == "__main__":
@@ -40,6 +43,7 @@ if __name__ == "__main__":
     parser.add_argument('-n', '--num_shard', default=1, type=int, help='Total number of shards to divide the text file into.')
     parser.add_argument('-i', '--shard_id', default=1, type=int, help='Specific shard number to process (starts from 0).')
     parser.add_argument('-d', '--device', default="cuda", type=str, help='Device to run the model on (e.g., "cuda" or "cpu").')
+    parser.add_argument('-l', '--max_len', default=256, type=int)
 
     args = parser.parse_args()
     logger.info(args)
@@ -55,18 +59,21 @@ if __name__ == "__main__":
     text_shard = texts[args.shard_id * shard_size: (args.shard_id+1) * shard_size]
 
     logger.info("***** Start Indexing *****")
-    all_p_csr = []
+    p_embs = []
     indexing_time = 0
     start_time_all = time.time()
     for i in tqdm(range(0, len(text_shard), args.batch_size), desc="Processing Corpus Batches"):
         start_time = time.time()
         batch_texts = text_shard[i:i+args.batch_size]
-        batch_p_emb = model.encode_corpus(batch_texts, batch_size=args.batch_size, convert_to_tensor=False)
+        batch_p_emb = model.encode_corpus(batch_texts, batch_size=args.batch_size, max_len=args.max_len, convert_to_tensor=True)
+        batch_p_emb = batch_p_emb.cpu().numpy()
+        batch_p_emb_csr = csr_array(batch_p_emb)
+
         indexing_time += time.time() - start_time
-        p_csr = csr_array(batch_p_emb)
-        all_p_csr.append(p_csr)
-    p_emb_csr = vstack(all_p_csr)
-    
+        p_embs.append(batch_p_emb_csr)
+        
+    p_emb = vstack(p_embs)
+
     logger.info("***** Finish Indexing *****")
     logger.info(f"***** Time for indexing (exclude i/o): {int(indexing_time)} s *****")
     logger.info(f"***** Time for indexing (include i/o): {int(time.time()-start_time_all)} s *****")
@@ -75,8 +82,10 @@ if __name__ == "__main__":
     if not os.path.exists(save_dir):
         os.makedirs(save_dir) 
 
-    save_npz(args.save_file, p_emb_csr)
-    sparse_rate = 100 * p_emb_csr.nnz / (p_emb_csr.shape[0] * p_emb_csr.shape[1])
+    save_npz(args.save_file, p_emb)
+
+    nnz = p_emb.nnz
+    sparse_rate = 100 * nnz / (p_emb.shape[0] * p_emb.shape[1])
     logger.info(f"***** Index save to: {args.save_file} *****")
-    logger.info(f"***** Index matrix shape: {p_emb_csr.shape} *****")
+    logger.info(f"***** Index matrix shape: {p_emb.shape} *****")
     logger.info(f"***** Index sparsity rate: {sparse_rate:.2f}% *****")

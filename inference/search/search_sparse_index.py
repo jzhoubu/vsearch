@@ -11,8 +11,69 @@ from tqdm import tqdm
 from scipy.sparse import load_npz
 from src.ir.index.binary_token_index import scipy_csr_to_torch_csr
 from src.ir import Retriever
-
+logging.basicConfig(level = logging.INFO)
 logger = logging.getLogger()
+
+
+def load_queries(query_file):
+    ids, queries = [], []
+    with open(query_file, 'r') as file:
+        for idx, line in enumerate(file):
+            sample = json.loads(line)
+            if isinstance(sample, str):
+                ids.append(idx)
+                queries.append(sample)
+            elif isinstance(sample, dict):
+                ids.append(sample['_id'])
+                queries.append(sample['text'])
+    return ids, queries
+
+def perform_search(q_embs, index_files, args):
+    results = {}
+    num_processed = 0
+    for shard_id, file_path in enumerate(index_files):
+        logger.info(f"***** Loading Index Shard {shard_id+1}/{len(index_files)} *****")
+        assert file_path.endswith(".npz")
+        shard = load_npz(file_path)
+
+        logger.info(f"***** Searching on Shard {shard_id+1}/{len(index_files)} *****")
+        for i in tqdm(range(0, shard.shape[0], args.batch_size_p), desc=f"Processing Shard {shard_id+1}"):
+            batch = shard[i: i + args.batch_size_p]
+            batch = scipy_csr_to_torch_csr(batch)
+            batch = batch.to(args.device)
+            batch_results = torch.matmul(q_embs, batch.t())
+            topk_values, topk_indices = batch_results.topk(args.topk)
+            topk_values = topk_values.tolist()
+            topk_indices = topk_indices.tolist()
+            update_results(results, ids, num_processed, topk_indices, topk_values)
+            num_processed += batch.shape[0]
+    return results
+
+def update_results(results, ids, num_processed, topk_indices, topk_values):
+    for query_idx in range(len(ids)):
+        qid = ids[query_idx]
+        results.setdefault(qid, {})
+        for idx, score in zip(topk_indices[query_idx], topk_values[query_idx]):
+            global_idx = num_processed + idx
+            results[qid][global_idx] = score
+        results[qid] = dict(sorted(results[qid].items(), key=lambda item: -item[1])[:args.topk])
+
+def get_rows_from_coo(coo_indices, coo_values, num_cols, row_indices):
+    # Select the rows that match the given row indices
+    mask = torch.isin(coo_indices[0], torch.tensor(row_indices))
+    
+    selected_indices = coo_indices[:, mask]
+    selected_values = coo_values[mask]
+    
+    # Adjust the row indices to be zero-based for the new tensor
+    row_mapping = {old_row: new_row for new_row, old_row in enumerate(row_indices)}
+    selected_indices[0] = torch.tensor([row_mapping[row.item()] for row in selected_indices[0]])
+    
+    # Determine the shape of the new sparse tensor
+    new_shape = (len(row_indices), num_cols)
+    
+    return torch.sparse_coo_tensor(selected_indices, selected_values, new_shape)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -30,65 +91,27 @@ if __name__ == "__main__":
 
     logger.info(args)
 
-    logger.info(f"### Loading Model: {args.checkpoint} ###")
+    # Load Retriever
+    logger.info(f"***** Loading Model: {args.checkpoint} *****")
     retriever = Retriever.from_pretrained(args.checkpoint)
     retriever = retriever.to(args.device)
 
-    logger.info(f"### Loading Query: {args.query_file} ###")
-    ids = []
-    queries = []
-    with open(args.query_file, 'r') as f:
-        for i, line in enumerate(f):
-            sample = json.loads(line)
-            if isinstance(sample, str):
-                ids.append(i)
-                queries.append(sample)
-            elif isinstance(sample, dict):
-                ids.append(sample['_id'])
-                queries.append(sample['text'])
-    q_embs = retriever.encoder_q.embed(queries, topk=args.activation_q, batch_size=32)
+    # Load Queries
+    logger.info(f"***** Loading Query: {args.query_file} *****")
+    ids, queries = load_queries(args.query_file)
+    q_embs = retriever.encoder_q.embed(queries, topk=args.activation_q, batch_size=128)
     q_embs = q_embs.to(args.device)
 
-    # process index
-    csr_files = sorted(glob.glob(args.index_file))
-    assert all([file.endswith('.npz') for file in csr_files])
-    print(f"### Found {len(csr_files)} Indexes. ###")
-    for csr_file in csr_files:
-        print(f"***** {csr_file} ###")
-
-    # start search
-    print(f"### Start Search on {len(csr_files)} Shards ###")    
-    results = {}
-    num_processed = 0
-    for shard_id, file in enumerate(csr_files):
-        print(f"### Searching on Shard {shard_id+1}/{len(csr_files)} ###")
-        data_shard = load_npz(file)
-        N = data_shard.shape[0]
-        for i in tqdm(range(0, N, args.batch_size_p)):
-            batch = data_shard[i: i + args.batch_size_p]
-            batch_pt = scipy_csr_to_torch_csr(batch)
-            batch_pt = batch_pt.to(args.device)
-            batch_results = torch.matmul(q_embs, batch_pt.t())
-            topk_values, topk_indices = batch_results.topk(args.topk)
-            topk_values = topk_values.tolist()
-            topk_indices = topk_indices.tolist()
-            
-            num_q = q_embs.shape[0]
-            num_batch_p = batch.shape[0]
-            for i in range(num_q):
-                qid = ids[i]
-                results[qid] = results.get(qid, {})
-                ret_indices = topk_indices[i]
-                ret_scores = topk_values[i]
-                for ret_id_in_shard, ret_score in zip(ret_indices, ret_scores):
-                    ret_id_global = num_processed + ret_id_in_shard
-                    results[qid][ret_id_global] = ret_score
-                results[qid] = dict(sorted(results[qid].items(), key=lambda kv: -kv[1])[:args.topk])
-            
-            num_processed += num_batch_p
-
-    print(f"### Save results to => {args.save_file} ###") 
-    save_dir = os.path.dirname(args.save_file)
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
-    json.dump(results, open(args.save_file, "w"))
+    # Load Index
+    index_files = sorted(glob.glob(args.index_file))
+    assert all(file.endswith('.npz') or file.endswith('.pt') for file in index_files), "Unsupported file format."
+    
+    # Search
+    results = perform_search(q_embs, index_files, args)
+    
+    # Save
+    if not os.path.exists(os.path.dirname(args.save_file)):
+        os.makedirs(os.path.dirname(args.save_file))
+    with open(args.save_file, "w") as outfile:
+        json.dump(results, outfile)
+    logger.info(f"***** Results saved to => {args.save_file} *****")
