@@ -133,7 +133,7 @@ class Retriever(BiEncoder):
         q_emb = self.encoder_q(q_ids, q_segments, q_attn_mask)
         p_emb = self.encoder_p(p_ids, p_segments, p_attn_mask)
         
-        if cfg.train.ret_negatives > 0:
+        if cfg.train.ret_negatives and cfg.train.ret_negatives > 0:
             q_emb = self.encoder_q(q_ids, q_segments, q_attn_mask)
 
             batch_negatives = self.retireve_negatives(

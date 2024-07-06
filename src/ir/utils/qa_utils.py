@@ -255,7 +255,7 @@ def regex_match(text, pattern):
 
 
 TOKENIZER = SimpleTokenizer()
-def has_answer(answers, text, match_type) -> bool:
+def has_answer(answers, text, match_type: str = "string") -> bool:
     """Check if a document contains an answer string.
     If `match_type` is string, token matching is done between the text and answer.
     If `match_type` is regex, we search the whole text with the regex.
