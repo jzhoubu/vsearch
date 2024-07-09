@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vsearch"
-version = "0.1.1"
+version = "0.1.2"
 description = "Disentangling Data on LM Vocabulary Space for Efficient Search and Retrieval-augmented Generation (RAG)"
 authors = ["Jiawei Zhou <jzhoubu@connect.ust.hk>"]
 readme = "README.md"
@@ -33,6 +33,8 @@ jupyter = "^1.0.0"
 gradio = "^4.26.0"
 faiss-gpu = "^1.7.2"
 beir = "^2.0.0"
+fastapi = "^0.111.0"
+uvicorn = "^0.30.1"
 
 [build-system]
 requires = ["poetry-core"]
