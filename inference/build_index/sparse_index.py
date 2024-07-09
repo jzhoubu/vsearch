@@ -41,7 +41,7 @@ if __name__ == "__main__":
     parser.add_argument('-bs', '--batch_size', default=32, type=int, help='Number of texts to process in each batch.')
     parser.add_argument('-k', '--topk', type=int, help='Top-k sparsity of sparse lexical retriever (optional, default is the retriever default sparsity).')
     parser.add_argument('-n', '--num_shard', default=1, type=int, help='Total number of shards to divide the text file into.')
-    parser.add_argument('-i', '--shard_id', default=1, type=int, help='Specific shard number to process (starts from 0).')
+    parser.add_argument('-i', '--shard_id', default=0, type=int, help='Specific shard number to process (starts from 0).')
     parser.add_argument('-d', '--device', default="cuda", type=str, help='Device to run the model on (e.g., "cuda" or "cpu").')
     parser.add_argument('-l', '--max_len', default=256, type=int)
 

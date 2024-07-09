@@ -8,7 +8,7 @@ import numpy as np
 from ..biencoder.biencoder import BiEncoder, BiEncoderConfig
 from ..utils.qa_utils import has_answer
 from ..data.biencoder_dataset import _normalize
-from ..index.base import Index
+from ..index.base import Index, SearchResults
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ class Retriever(BiEncoder):
         dropout: float = 0, 
         a: int = None, 
         index: Index = None
-    ):
+    ) -> SearchResults:
         index = index or self.index
         a = a or self.encoder_q.config.topk
         if isinstance(queries, list) and isinstance(queries[0], str):

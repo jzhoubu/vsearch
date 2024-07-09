@@ -1,8 +1,8 @@
-import collections
-from typing import Any, Protocol
+from typing import Any, Protocol, NamedTuple, List
 
-SearchResults = collections.namedtuple("SearchResults", ["ids", "scores"])
-
+class SearchResults(NamedTuple):
+    ids: List[int]
+    scores: List[float]
 
 class Index(Protocol):
     """Abstract vector store protocol."""
