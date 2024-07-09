@@ -67,15 +67,19 @@ if __name__ == "__main__":
     logger.info(f"***** Load {len(questions)} Q-A pairs *****")
 
     # Eval
+    
     max_k = max(args.k)
     acc = np.zeros([len(questions), max_k])
-    for i in tqdm(range(len(questions))):
-        ret_ids = [x for (x, score) in results[i].items()][:max_k]
-        ret_texts = [texts[i] for i in ret_ids]
-        answer = answers[i]
-        for rank, text in enumerate(ret_texts):
-            if has_answer(answer, text, 'string'):
-                acc[i][rank] = 1
+
+    for i in tqdm(range(acc.shape[0])):
+        for j in range(acc.shape[1]):
+            ret_id = [x for (x, score) in results[i].items()][j]
+            ret_text = texts[ret_id]
+            answer = answers[i]
+            if has_answer(answer, ret_text, 'string'):
+                acc[i][j: ] = 1
+                break
+
     for k in args.k:
         logger.info(f"***** Top-{k} acc: {acc[:, :k].max(-1).mean()*100:.2f}% *****")
 
