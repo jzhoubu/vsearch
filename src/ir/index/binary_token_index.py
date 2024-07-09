@@ -1,6 +1,7 @@
 import logging
 import torch
 import json
+import mmap
 import glob
 import numpy as np
 from tqdm import tqdm
@@ -22,6 +23,32 @@ def scipy_csr_to_torch_csr(mat: np.array, device="cpu"):
     mat_csr = mat_csr.to(device)
     return mat_csr
 
+
+
+def calculate_offsets(file_path):
+    offsets = []
+    with open(file_path, 'r') as f:  # 修改这里，使用只读模式
+        mm = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
+        start = 0
+        while True:
+            end = mm.find(b'\n', start)
+            if end == -1:
+                if start < mm.size():  # 处理可能的最后一行
+                    offsets.append((start, mm.size()))
+                break
+            offsets.append((start, end))
+            start = end + 1
+        mm.close()
+    return offsets
+
+def load_line(file_path, offsets, line_number):
+    with open(file_path, 'r') as f:
+        mm = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
+        start, end = offsets[line_number]
+        line = mm[start:end].decode('utf-8')
+        mm.close()
+    return json.loads(line)
+
 class BinaryTokenIndex(Index):
     """
     Binary token index.
@@ -33,9 +60,11 @@ class BinaryTokenIndex(Index):
             shift: int = 0, 
             device: str = "cpu", 
             data_file: str = None,
+            low_memory: bool = True,
             **kwargs):
         self.data = None
         self.index = None
+        self.low_memory = low_memory
         self.init_index(index_file, fp16, shift, device)
         if data_file:
             self.load_data(data_file)
@@ -64,7 +93,18 @@ class BinaryTokenIndex(Index):
         self.device = device
 
     def load_data(self, file):
-        self.data = [json.loads(l) for l in open(file, 'r')]
+        if not self.low_memory:
+            self.data = [json.loads(l) for l in open(file, 'r')]
+        else:
+            self.offsets = calculate_offsets(file)
+            self.data_file = file
+
+    def get_sample(self, i):
+        if not self.low_memory:
+            return self.data[i]
+        else:
+            sample = load_line(self.data_file, self.offsets, i)
+            return sample
 
     def search(self, q_embs: T, k: int) -> SearchResults:
         q_embs = q_embs.to(self.device).type(self.vector.dtype)
