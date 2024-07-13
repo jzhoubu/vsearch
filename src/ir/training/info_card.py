@@ -57,11 +57,9 @@ class InfoCard():
         for i, text in enumerate(texts):
             if descs:
                 text = f"{descs[i]}: {text}"
-                text_items = re.split(r'(\s+)', text)
-                self.info += self.tidy_item(text_items) + "\n\n"
-            else:
-                text_items = re.split(r'(\s+)', text)
-                self.info += self.tidy_item(text_items) + "\n\n"
+            text_items = re.split(r'(\s+)', text)
+            text_items = [item.strip(" ") for item in text_items if item.strip(" ")]
+            self.info += self.tidy_item(text_items) + "\n\n"
 
     def add_interaction_info(self, q_emb, p_emb, p2_emb=None, k=20, title=None):
         self.add_title_line(title)

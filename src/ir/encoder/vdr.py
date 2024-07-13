@@ -130,7 +130,7 @@ class VDREncoder(PreTrainedModel):
         texts = [texts] if isinstance(texts, str) else texts
         is_training = self.training
 
-        if not require_grad:
+        if not require_grad and is_training:
             self.eval()
 
         with torch.no_grad() if not require_grad else nullcontext():
@@ -164,7 +164,7 @@ class VDREncoder(PreTrainedModel):
             elif to_cpu:
                 emb = emb.cpu()
 
-        if is_training:
+        if is_training and not self.training:
             self.train()
             
         return emb
