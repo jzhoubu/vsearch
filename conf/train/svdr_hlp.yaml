@@ -1,0 +1,36 @@
+batch_size: 32
+num_train_epochs: 5
+adam_eps: 1e-8
+adam_betas: (0.9, 0.999)
+learning_rate: 2e-5
+max_grad_norm: 2.0
+weight_decay: 0.0
+num_warmup_epochs: 1
+num_epoch_to_save: 1
+num_epoch_to_eval: 
+sym_loss: True
+semi: True
+
+# negative
+hard_negatives: 0
+other_negatives: 1
+ret_negatives:
+ret_topk:
+ret_dropout:
+negative_pool_size: 100
+
+# data
+train_insert_title: True
+valid_insert_title: False
+require_positive: True
+require_hard_negative: False # no hard negative in HLP
+train_sampling_rates: 
+
+# cst mask
+cts_mask: 
+cts_mask_weight: 
+cts_mask_norm: 
+
+# info
+log_batch_step: 100
+train_rolling_loss_step: 100
