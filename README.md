@@ -37,11 +37,12 @@ This repository includes:
 -->
 
 ## What's News 🔥
-- 2024-06-21: We release examples and results of dense and sparse retrieval for large-scale inference on local data. Check details in `examples/inference_dense` and `examples/inference_sparse`.
-- 2024-05-17: We launched the training code and pipeline.
-- 2024-05-08: We launched a semi-parametric inference pipeline (for low-resource, efficient, large-scale retrieval).
-- 2024-05-06: SVDR: [Semi-Parametric Retrieval via Binary Token Index](https://arxiv.org/pdf/2405.01924) has been published on arXiv.
-- 2024-01-16: VDR: [Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y) was accepted as a spotlight at ICLR2024.
+- 2024-07-13: Released model cards for various checkpoints, detailing reproducibility and performance.
+- 2024-06-21: Released examples and results of dense and sparse retrieval for large-scale inference on local data. Check details in `examples/inference_dense` and `examples/inference_sparse`.
+- 2024-05-17: Launched training code and pipeline.
+- 2024-05-08: Launched a semi-parametric inference pipeline (for low-resource, efficient, large-scale retrieval).
+- 2024-05-06: SVDR: [Semi-Parametric Retrieval via Binary Token Index](https://arxiv.org/pdf/2405.01924) published on arXiv.
+- 2024-01-16: VDR: [Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y) accepted as a spotlight at ICLR 2024.
 
 
 ## 🗺 Overview
