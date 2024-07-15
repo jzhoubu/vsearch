@@ -37,8 +37,9 @@ This repository includes:
 -->
 
 ## What's News 🔥
-- 2024-07-13: Released model cards for various checkpoints, detailing reproducibility and performance.
-- 2024-06-21: Released examples and results of dense and sparse retrieval for large-scale inference on local data. Check details in `examples/inference_dense` and `examples/inference_sparse`.
+- 2024-07-15: Released model cards and detailed information of supervised and unsupervised retrieval checkpoints. More information is available [here](https://github.com/jzhoubu/vsearch/tree/master/docs/model_cards).
+- 2024-07-13: Thrilled to see that the SVDR checkpoint has surpassed 3,000 downloads in the past month.
+- 2024-06-21: Released pipelines of large-scale dense and sparse retrieval on customized data. For more details, see [dense inference](https://github.com/jzhoubu/vsearch/tree/master/examples/inference_dense) and [sparse inference](https://github.com/jzhoubu/vsearch/tree/master/examples/inference_sparse).
 - 2024-05-17: Launched training code and pipeline.
 - 2024-05-08: Launched a semi-parametric inference pipeline (for low-resource, efficient, large-scale retrieval).
 - 2024-05-06: SVDR: [Semi-Parametric Retrieval via Binary Token Index](https://arxiv.org/pdf/2405.01924) published on arXiv.

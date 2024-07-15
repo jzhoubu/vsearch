@@ -29,7 +29,7 @@ train=dpr_hlp \
 train.batch_size=128
 ```
 
-### Performance
+### Performance on NQ-test
 
 | Model             |     Search Mode          | Top-1  | Top-5  | Top-10 | Top-20  | Top-100 |
 |-------------------|:------------------------:|:------:|:------:|:------:|:-------:|:-------:|

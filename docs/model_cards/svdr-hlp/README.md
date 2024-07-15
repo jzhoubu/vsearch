@@ -21,7 +21,7 @@ train.other_negatives=1 \
 train.batch_size=128
 ```
 
-### Performance
+### Performance on NQ-test
 
 We tested various configurations, such as the use of additional negative (neg=1) and whether to employ a shared encoder (shared). The results showed that models with one negative and a shared encoder perform better than those without. These findings also align with results of `dpr-hlp`. 
 
