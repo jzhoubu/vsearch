@@ -60,7 +60,7 @@ class BinaryTokenIndex(Index):
             shift: int = 0, 
             device: str = "cpu", 
             data_file: str = None,
-            low_memory: bool = True,
+            low_memory: bool = False,
             **kwargs):
         self.data = None
         self.index = None

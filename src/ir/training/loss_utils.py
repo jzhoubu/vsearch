@@ -67,7 +67,7 @@ def _do_biencoder_fwd_pass(
             p_emb_local=p_emb,
             q_bin_local=q_bin,
             p_bin_local=p_bin,
-            print_info=verbose,
+            verbose=verbose,
             qids=q_ids,
             pids=p_ids,
             tokenizer=model.module.encoder_q.tokenizer,
@@ -115,9 +115,11 @@ def compute_vdr_loss(
     p_emb_local, 
     q_bin_local,
     p_bin_local,
-    print_info: bool = False,
+    verbose: bool = False,
     qids = None,
     pids = None,
+    q_texts = None,
+    p_texts = None,
     tokenizer=None,
     logger=None,
     answers=None,
@@ -137,23 +139,27 @@ def compute_vdr_loss(
 
     N_global = q_emb_global.shape[0]
 
-    if cfg.local_rank in [-1,0] and print_info:
+    if cfg.local_rank in [-1,0] and verbose:
         sample_id = 0
         q_emb = q_emb_local[sample_id]
         p_emb = p_emb_local[sample_id, 0, :]
-        q_text = tokenizer.decode([i for i in qids[sample_id] if i != tokenizer.pad_token_id])
-        p_text = tokenizer.decode([i for i in pids[sample_id] if i != tokenizer.pad_token_id])
-        answer = " | ".join(answers[sample_id])
-        if cfg.train.ret_negatives == 1 or cfg.train.hard_negatives == 1:
+        if q_texts and p_texts:
+            q_text = q_texts[sample_id]
+            p_text = p_texts[sample_id]
+        elif qids and pids:
+            q_text = tokenizer.decode([i for i in qids[sample_id] if i != tokenizer.pad_token_id])
+            p_text = tokenizer.decode([i for i in pids[sample_id] if i != tokenizer.pad_token_id])
+        answer = " | ".join(answers[sample_id]) if answers else None
+        if getattr(cfg.train, "ret_negatives", None) or getattr(cfg.train, "hard_negatives", None):
             p_neg_text = tokenizer.decode([i for i in pids[sample_id + N] if i != tokenizer.pad_token_id])
             p_neg_emb = p_emb_global[sample_id + N_global]
-            texts = [q_text, p_text, p_neg_text, answer]
-            descs = ['[Q_TEXT]', '[P_TEXT1]', '[P_TEXT2]', '[ANSWER]']
+            texts = [q_text, p_text, p_neg_text, answer] if answer else [q_text, p_text, p_neg_text]
+            descs = ['[Q_TEXT]', '[P_TEXT1]', '[P_TEXT2]', '[ANSWER]'] if answer else ['[Q_TEXT]', '[P_TEXT1]', '[P_TEXT2]']
         else:
             p_neg_text = None
             p_neg_emb = None
-            texts = [q_text, p_text, answer]
-            descs = ['[Q_TEXT]', '[P_TEXT1]', '[ANSWER]']
+            texts = [q_text, p_text, answer] if answer else [q_text, p_text]
+            descs = ['[Q_TEXT]', '[P_TEXT1]', '[ANSWER]'] if answer else ['[Q_TEXT]', '[P_TEXT1]']
 
         info_card = InfoCard(tokenizer=tokenizer, shift_vocab_num=cfg.biencoder.encoder_q.shift_vocab_num)
         info_card.add_stat_info(q_emb_global, title=' q_emb_global ')
@@ -167,11 +173,11 @@ def compute_vdr_loss(
 
     retrieval_loss_func = SymmetryBiEncoderNllLoss() if cfg.train.sym_loss else BiEncoderNllLoss()
 
-    if cfg.train.semi:
+    if getattr(cfg.train, "semi", True):
         loss_1, is_correct_1 = retrieval_loss_func.calc(q_emb_topk_global, p_emb_global)
         loss_2, is_correct_2 = retrieval_loss_func.calc(q_emb_global, p_emb_topk_global)
         
-        if cfg.train.cts_mask:
+        if getattr(cfg.train, "cts_mask", None):
             cts_mask_activate = build_cts_mask(q_bin_global)
             cts_mask_deactivate = torch.ones_like(p_emb_global).to(cfg.device)
             cts_mask_deactivate[:N_global] = ~cts_mask_activate

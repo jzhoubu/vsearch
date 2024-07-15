@@ -7,7 +7,6 @@ max_grad_norm: 2.0
 weight_decay: 0.0
 num_warmup_epochs: 1
 num_epoch_to_save: 10
-num_epoch_to_eval: 1
 sym_loss: True
 semi: True
 
