@@ -125,6 +125,7 @@ def compute_vdr_loss(
     answers=None,
 ) -> Tuple[T, bool]:
 
+    assert q_emb_local.requires_grad_ and p_emb_local.requires_grad_
     N, V = q_emb_local.shape
 
     p_emb_local = p_emb_local.view(-1, N, V).permute(1, 0, 2).contiguous()
@@ -143,15 +144,16 @@ def compute_vdr_loss(
         sample_id = 0
         q_emb = q_emb_local[sample_id]
         p_emb = p_emb_local[sample_id, 0, :]
-        if q_texts and p_texts:
+        if q_texts is not None and p_texts is not None:
             q_text = q_texts[sample_id]
             p_text = p_texts[sample_id]
-        elif qids and pids:
+        elif qids is not None and pids is not None:
             q_text = tokenizer.decode([i for i in qids[sample_id] if i != tokenizer.pad_token_id])
             p_text = tokenizer.decode([i for i in pids[sample_id] if i != tokenizer.pad_token_id])
         answer = " | ".join(answers[sample_id]) if answers else None
-        if getattr(cfg.train, "ret_negatives", None) or getattr(cfg.train, "hard_negatives", None):
-            p_neg_text = tokenizer.decode([i for i in pids[sample_id + N] if i != tokenizer.pad_token_id])
+        
+        if getattr(cfg.train, "ret_negatives", None) or getattr(cfg.train, "hard_negatives", None) or getattr(cfg.train, "num_score", None):
+            p_neg_text = p_texts[sample_id + N] if p_texts else tokenizer.decode([i for i in pids[sample_id + N] if i != tokenizer.pad_token_id])
             p_neg_emb = p_emb_global[sample_id + N_global]
             texts = [q_text, p_text, p_neg_text, answer] if answer else [q_text, p_text, p_neg_text]
             descs = ['[Q_TEXT]', '[P_TEXT1]', '[P_TEXT2]', '[ANSWER]'] if answer else ['[Q_TEXT]', '[P_TEXT1]', '[P_TEXT2]']
