@@ -7,10 +7,10 @@ elu1p = lambda x: F.elu(x) + 1
 
 def build_topk_mask(embs: Union[torch.Tensor, np.ndarray], k: int = 768, dim: int = -1):        
     if isinstance(embs, np.ndarray):
-        embs = torch.Tensor(embs)
+        embs = torch.from_numpy(embs)
     values, indices = torch.topk(embs, k, dim=dim)
-    topk_mask = torch.zeros_like(embs)
-    topk_mask.scatter_(dim=-1, index=indices, value=1)
+    topk_mask = torch.zeros_like(embs, dtype=torch.bool)
+    topk_mask.scatter_(dim=-1, index=indices, value=True)
     return topk_mask
 
 def topk_sparsify(emb_dense: torch.Tensor, k: int, dim: int = -1):

@@ -84,7 +84,7 @@ class BiEncoder(PreTrainedModel):
             List of embeddings for the given sentences
         """
         batch_size = batch_size or self.default_batch_size
-        q_emb = self.encoder_q.embed(queries, batch_size, convert_to_tensor=convert_to_tensor, **kwargs)
+        q_emb = self.encoder_q.embed(queries, batch_size, convert_to_tensor=convert_to_tensor, activate_lexical=False, **kwargs)
         return q_emb
 
     def encode_corpus(self, corpus: Union[List[str], List[Dict[str, str]]], batch_size=None, max_len=None, to_cpu=False, convert_to_tensor=True, **kwargs) -> Union[List[np.ndarray], List[torch.Tensor]]:
@@ -107,7 +107,7 @@ class BiEncoder(PreTrainedModel):
                     processed_corpus.append(f"{p['title']} [SEP] {p['text']}")
                 else:
                     processed_corpus.append(p['text'])
-        p_emb = self.encoder_p.embed(processed_corpus, batch_size, max_len=max_len, to_cpu=to_cpu, convert_to_tensor=convert_to_tensor, **kwargs)
+        p_emb = self.encoder_p.embed(processed_corpus, batch_size, max_len=max_len, to_cpu=to_cpu, convert_to_tensor=convert_to_tensor, activate_lexical=False, **kwargs)
         return p_emb
 
     def explain(self, q, p, topk=768, visual=False, visual_width=800, visual_height=800):

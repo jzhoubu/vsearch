@@ -99,6 +99,7 @@ class VDREncoder(PreTrainedModel):
         max_len: int = None, 
         topk: int = None,
         bow: bool = False, 
+        activate_lexical: bool = True,
         require_grad: bool = False,
         to_cpu: bool = False,
         convert_to_tensor: bool = True,
@@ -115,6 +116,7 @@ class VDREncoder(PreTrainedModel):
                 - If topk=-1 or None, activate all the dimensions;
                 - Otherwise, acitvate only top-k dimension. 
             bow (bool): If True, embeds texts into binary token representations.
+            activate_lexical (bool): If True, force to activate token lexical dimension.
             require_grad (bool): If True, keeps gradients for backpropagation. 
             to_cpu (bool): If True, moves the result to CPU memory.
             convert_to_tensor (bool): If True, returns a Tensor instead of a NumPy array.
@@ -154,7 +156,7 @@ class VDREncoder(PreTrainedModel):
                     else: 
                         # Acitvate top-k dimensions
                         topk_mask = build_topk_mask(batch_emb, topk)
-                    mask = torch.logical_or(bow_mask, topk_mask)
+                    mask = torch.logical_or(bow_mask, topk_mask) if activate_lexical else topk_mask
                     batch_emb *= mask
 
                 batch_embs.append(batch_emb)
