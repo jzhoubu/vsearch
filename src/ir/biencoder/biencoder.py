@@ -1,13 +1,11 @@
 import logging
-import random
-import collections
 import numpy as np
 import torch
 from typing import Tuple, List, Dict, Union
 from torch import Tensor as T
 from transformers import PreTrainedModel, PretrainedConfig
-import matplotlib.pyplot as plt
-from wordcloud import WordCloud
+from ..utils.visualize_utils import wordcloud_from_dict
+
 
 from ..data.biencoder_dataset import BiEncoderSample
 from ..encoder.types import ENCODER_TYPES, CONFIG_TYPES
@@ -110,7 +108,7 @@ class BiEncoder(PreTrainedModel):
         p_emb = self.encoder_p.embed(processed_corpus, batch_size, max_len=max_len, to_cpu=to_cpu, convert_to_tensor=convert_to_tensor, activate_lexical=False, **kwargs)
         return p_emb
 
-    def explain(self, q, p, topk=768, visual=False, visual_width=800, visual_height=800):
+    def explain(self, q, p, topk=768, visual=False, max_words=100, log_scale=True, save_file=None):
         q_dst = self.encoder_q.dst(q, topk=topk)
         p_dst = self.encoder_p.dst(p, topk=topk)
         result_dict = {
@@ -121,10 +119,6 @@ class BiEncoder(PreTrainedModel):
         sorted_keys = sorted(result_dict, key=result_dict.get, reverse=True)
         results = {key: result_dict[key] for key in sorted_keys}
         if visual:
-            wordcloud = WordCloud(max_words=topk, width=visual_width, height=visual_height).generate_from_frequencies(results)
-            plt.imshow(wordcloud, interpolation='bilinear')
-            plt.axis("off")
-            plt.tight_layout(pad=0)
-            plt.show()
+            wordcloud_from_dict(results, max_words=max_words, log_scale=log_scale, save_file=save_file)
         return results
 

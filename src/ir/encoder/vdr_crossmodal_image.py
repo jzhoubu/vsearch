@@ -209,12 +209,15 @@ class VDRImageEncoder(PreTrainedModel):
         x = self.ln_post(x)
         return x
 
-    def embed(self, image: Union[str, T], training: bool = False, topk=None):
+    def embed(self, images: Union[str, List[str], T], training: bool = False, topk=None):
         topk = topk or self.config.topk
         with torch.no_grad() if not training else nullcontext():
-            if isinstance(image, str):
-                image = self.load_image_file(image)
-            img_emb = self(image.type(self.dtype).to(self.device)) # [N, L, D]
+            if isinstance(images, str):
+                images = [images]
+            if isinstance(images, List) and isinstance(images[0], str):
+                images = [self.load_image_file(image) for image in images]
+                images = torch.cat(images, dim=0)
+            img_emb = self(images.type(self.dtype).to(self.device)) # [N, L, D]
             img_emb = img_emb @ self.proj.t() # [N, L, V]
             img_emb = img_emb.max(1)[0]
             img_emb = elu1p(img_emb)
@@ -222,6 +225,7 @@ class VDRImageEncoder(PreTrainedModel):
             topk_mask = build_topk_mask(img_emb, k=topk)
             img_emb = img_emb * topk_mask
         return img_emb
+
 
     def load_image_file(self, file_path):
         image = Image.open(file_path).convert('RGB')

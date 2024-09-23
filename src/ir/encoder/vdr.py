@@ -2,7 +2,6 @@ from contextlib import nullcontext
 from functools import partial
 import logging
 from typing import List, Union
-import matplotlib.pyplot as plt
 
 import torch
 from torch import Tensor as T
@@ -12,9 +11,12 @@ from transformers import AutoModel, AutoTokenizer, BertConfig, BatchEncoding, Pr
 
 from ..utils.sparsify_utils import build_bow_mask, build_topk_mask, elu1p
 from ..utils.visualize_utils import wordcloud_from_dict
-
+from ..training.ddp_utils import get_rank
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+
 
 class VDREncoderConfig(BertConfig):
     """
@@ -88,7 +90,7 @@ class VDREncoder(PreTrainedModel):
     ) -> BatchEncoding:
         max_len = max_len or self.config.max_len
         texts = [texts] if isinstance(texts, str) else texts
-        encoding = self.tokenizer.batch_encode_plus(texts, padding="max_length", truncation=True, max_length=max_len, return_tensors='pt')
+        encoding = self.tokenizer.batch_encode_plus(texts, padding=True, truncation=True, max_length=max_len, return_tensors='pt')
         encoding = encoding.to(self.device)
         return encoding
 
@@ -104,6 +106,7 @@ class VDREncoder(PreTrainedModel):
         to_cpu: bool = False,
         convert_to_tensor: bool = True,
         show_progress_bar: bool = False,
+        **kwargs
     ) -> T:
         """Embeds texts into lexical representations.
 
@@ -117,7 +120,7 @@ class VDREncoder(PreTrainedModel):
                 - Otherwise, acitvate only top-k dimension. 
             bow (bool): If True, embeds texts into binary token representations.
             activate_lexical (bool): If True, force to activate token lexical dimension.
-            require_grad (bool): If True, keeps gradients for backpropagation. 
+            require_grad (bool): If True, keeps gradients for backpropagation. If False, turn model to .eval() for consistent embeddings.
             to_cpu (bool): If True, moves the result to CPU memory.
             convert_to_tensor (bool): If True, returns a Tensor instead of a NumPy array.
             show_progress_bar (bool): If True, displays embedding progress. 
@@ -140,9 +143,15 @@ class VDREncoder(PreTrainedModel):
             num_text = len(texts)
             iterator = range(0, num_text, batch_size)
             for batch_start in tqdm(iterator) if show_progress_bar else iterator:
+                
+                logger.debug(f"RANK-{get_rank()}, in the vdr.embed loop: batch_start : {batch_start}")
                 batch_texts = texts[batch_start : batch_start + batch_size]
+                logger.debug(f"RANK-{get_rank()}, in the vdr.embed loop: encode_start : {batch_start}")
                 encoding = self.encode(batch_texts, max_len=max_len)
+                logger.debug(f"RANK-{get_rank()}, in the vdr.embed loop: build_bow_start : {batch_start}")
                 bow_mask = self.build_bow_mask(encoding.input_ids)
+                logger.debug(f"RANK-{get_rank()}, in the vdr.embed loop: forward_start : {batch_start}")
+
                 if bow:
                     batch_emb = bow_mask
                 else:
@@ -158,7 +167,6 @@ class VDREncoder(PreTrainedModel):
                         topk_mask = build_topk_mask(batch_emb, topk)
                     mask = torch.logical_or(bow_mask, topk_mask) if activate_lexical else topk_mask
                     batch_emb *= mask
-
                 batch_embs.append(batch_emb)
             emb = torch.cat(batch_embs, dim=0)
             if not convert_to_tensor:
@@ -168,7 +176,6 @@ class VDREncoder(PreTrainedModel):
 
         if is_training and not self.training:
             self.train()
-            
         return emb
 
     def disentangle(self, text: str, topk: int = 768, visual=False, save_file=None):
