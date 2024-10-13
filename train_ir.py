@@ -203,19 +203,19 @@ class RetrieverTrainer(object):
 
 
     def save_checkpoint(self, suffix: str) -> str:
-        cfg = self.cfg
         model_to_save = self.model.module if hasattr(self.model, "module") else self.model
-        output_dir = cfg.output_dir if cfg.output_dir else "./"
-        cp = os.path.join(output_dir, cfg.save_name_prefix + "_" + suffix)
+        output_dir = self.cfg.output_dir or "./"
+        file_name = self.cfg.save_name_prefix + "_" + suffix
+        save_path = os.path.join(output_dir, file_name)
         if self.cfg.biencoder.shared_encoder:
-            model_to_save.save_pretrained(cp, safe_serialization=False) 
+            model_to_save.save_pretrained(save_path, safe_serialization=False) 
         else:
-            model_to_save.save_pretrained(cp) 
-        logger.info("Saved checkpoint at %s", cp)
-        return cp
+            model_to_save.save_pretrained(save_path) 
+        logger.info("Saved checkpoint at %s", save_path)
+        return save_path
 
 
-@hydra.main(version_base="1.3", config_path="conf", config_name="train_retriever_cfg")
+@hydra.main(version_base="1.3", config_path="conf", config_name="train_ir_cfg")
 def main(cfg: DictConfig):
 
     hydra_cfg = hydra.core.hydra_config.HydraConfig.get()

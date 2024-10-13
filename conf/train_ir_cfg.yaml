@@ -4,7 +4,7 @@ defaults:
   - biencoder: vdr
   - data_stores: wiki21m
   - index_stores: wiki21m
-  - train: vdr_nq
+  - train: svdr_nq
 
 train_datasets: 
 dev_datasets: 
