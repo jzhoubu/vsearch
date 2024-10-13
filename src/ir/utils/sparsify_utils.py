@@ -18,12 +18,12 @@ def topk_sparsify(emb_dense: torch.Tensor, k: int, dim: int = -1):
     emb_sparse = emb_dense * topk_mask
     return emb_sparse
 
-
 def build_bow_mask(text_ids, vocab_size=30522, shift_num=0, norm=False):
     N = text_ids.shape[0]
     V = vocab_size
     bow_mask = torch.zeros([N, V]).to(text_ids.device).scatter_(-1, text_ids, 1).bool().float()
-    bow_mask = bow_mask[:, shift_num:].contiguous()
+    if shift_num > 0:
+        bow_mask = bow_mask[:, shift_num:].contiguous()
     if norm:
         bow_mask = F.normalize(bow_mask)
     return bow_mask

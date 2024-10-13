@@ -31,7 +31,7 @@ class Retriever(BiEncoder):
 
     def retrieve(
         self, 
-        queries: Union[List[str], np.ndarray], 
+        queries: Union[List[str], np.ndarray, T], 
         k: int = 5, 
         dropout: float = 0, 
         a: int = None, 
@@ -147,11 +147,12 @@ class Retriever(BiEncoder):
 
             batch_negatives_flat = [neg for sample_negatives in batch_negatives for neg in sample_negatives]
             encoding = self.encoder_p.encode(batch_negatives_flat)
-            p_ids_all = torch.cat([p_ids, encoding.input_ids], dim=0)
-            p_segments_all = torch.cat([p_segments, encoding.token_type_ids], dim=0)
-            attn_mask_all = torch.cat([p_attn_mask, encoding.attention_mask], dim=0)
-            p_emb = self.encoder_p(p_ids_all, p_segments_all, attn_mask_all)
-            p_ids = p_ids_all
+            p_emb_neg = self.encoder_p(**encoding)
+            max_length = max(p_ids.size(1), encoding.input_ids.size(1))
+            p_ids_padded = F.pad(p_ids, (0, max_length - p_ids.size(1)))
+            input_ids_padded = F.pad(encoding.input_ids, (0, max_length - encoding.input_ids.size(1)))
+            p_ids = torch.cat([p_ids_padded, input_ids_padded], dim=0) 
+            p_emb = torch.cat([p_emb, p_emb_neg], dim=0)
 
         if return_ids:
             return q_emb, p_emb, q_ids, p_ids 

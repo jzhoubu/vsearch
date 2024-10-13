@@ -67,7 +67,6 @@ if __name__ == "__main__":
     logger.info(f"***** Load {len(questions)} Q-A pairs *****")
 
     # Eval
-    
     max_k = max(args.k)
     acc = np.zeros([len(questions), max_k])
 

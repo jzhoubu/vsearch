@@ -256,18 +256,25 @@ def regex_match(text, pattern):
 
 TOKENIZER = SimpleTokenizer()
 def has_answer(answers, text, match_type: str = "string") -> bool:
-    """Check if a document contains an answer string.
-    If `match_type` is string, token matching is done between the text and answer.
-    If `match_type` is regex, we search the whole text with the regex.
     """
-    text = _normalize(text).lower()
+    Check if a document contains an answer string.
 
+    Args:
+        answers (list): List of possible answer strings to check.
+        text (str): The document text in which to search for answers.
+        match_type (str): Matching type, either "string" or "regex".
+        uncased (bool): Whether to treat text and answers as case-insensitive.
+
+    Returns:
+        bool: True if an answer is found in the text, False otherwise.
+    """
+    text = _normalize(text)
     if match_type == "string":
         # Answer is a list of possible strings
         text = TOKENIZER.tokenize(text).words(uncased=True)
 
         for single_answer in answers:
-            single_answer = _normalize(single_answer).lower()
+            single_answer = _normalize(single_answer)
             single_answer = TOKENIZER.tokenize(single_answer)
             single_answer = single_answer.words(uncased=True)
 

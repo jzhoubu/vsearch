@@ -66,6 +66,7 @@ class DPREncoder(PreTrainedModel):
         to_cpu: bool = False,
         convert_to_tensor: bool = True,
         show_progress_bar: bool = False,
+        **kwargs
     ) -> T:
 
         max_len = max_len or self.config.max_len
