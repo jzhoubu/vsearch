@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/jzhoubu/VDR/blob/master/LICENSE)
 ![Python 3.9](https://img.shields.io/badge/python-3.9-green)
 
-**Vsearch**: Disentangling Data on LM <u>**V**</u>ocabulary Space for <u>**Search**</u>. 
+**Vsearch**: Representing data on LM <u>**V**</u>ocabulary space for <u>**Search**</u>. 
 
 An extensible, transparent, trainable toolbox for retrieval-augmented frameworks, designed to be user-friendly, efficient, and accessible, empowering individuals to customize and deploy their own retrieval-based applications.
 
@@ -34,7 +34,7 @@ This repository includes:
 <div align=center>
     <img src="examples/images/vdr-cover.png" width="70%" height="70%">
 </div>
--->
+
 
 ## What's News 🔥
 - 2024-07-15: Released model cards and detailed information of supervised and unsupervised retrieval checkpoints. More information is available [here](https://github.com/jzhoubu/vsearch/tree/master/docs/model_cards).
@@ -44,7 +44,7 @@ This repository includes:
 - 2024-05-08: Launched a semi-parametric inference pipeline (for low-resource, efficient, large-scale retrieval).
 - 2024-05-06: SVDR: [Semi-Parametric Retrieval via Binary Token Index](https://arxiv.org/pdf/2405.01924) published on arXiv.
 - 2024-01-16: VDR: [Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y) accepted as a spotlight at ICLR 2024.
-
+-->
 
 ## 🗺 Overview
 
@@ -76,16 +76,6 @@ poetry install
 poetry shell
 ```
 
-<!--
-### Setup Environment via pip
-
-```
-conda create -n vdr python=3.9
-conda activate vdr
-pip install -r requirements.txt
-```
--->
-
 
 ### Download Data
 
@@ -100,24 +90,9 @@ python download.py nq_train trivia_train
 python download.py all
 ```
 
-
-<!--
-<details>
-<summary>Testing</summary>
-
-```bash
-python -m test.quick_start
-# Expected Ouput:
-# tensor([[91.1257, 17.6930, 13.0358, 12.4576]], device='cuda:0')
-# tensor([[0.3209, 0.0984]])
-```
-</details>
--->
-
 ## 🚀 Quick Start
 
-<details>
-<summary>Text-to-text Retrieval</summary>
+### Embedding and Compute Relevance
 
 ```python
 import torch
@@ -132,71 +107,127 @@ passages = [
 ]
 
 # Initialize the retriever
-svdr = Retriever.from_pretrained("vsearch/svdr-nq")
-svdr = svdr.to("cuda")
+retriever = Retriever.from_pretrained("vsearch/svdr-msmarco")
+retriever = retriever.to("cuda")
 
 # Embed the query and passages
-q_emb = svdr.encoder_q.embed(query)  # Shape: [1, V]
-p_emb = svdr.encoder_p.embed(passages)  # Shape: [4, V]
+q_emb = retriever.encoder_q.embed(query)  # Shape: [1, V]
+p_emb = retriever.encoder_p.embed(passages)  # Shape: [4, V]
 
  # Query-passage Relevance
 scores = q_emb @ p_emb.t()
 print(scores)
 
 # Output: 
-# tensor([[62.6829, 12.0408, 10.5600]], device='cuda:0')
+# tensor([[97.2964, 39.7844, 37.6955]], device='cuda:0')
 ```
-</details>
 
+### Building an Index for Large-scale Retrieval
 
+For large-scale retrieval tasks, it's efficient to build the index once and reuse it for subsequent retrieval tasks.
 
-<details>
-<summary>Disentanglement and Reasoning</summary>
-
-### Disentanglement and Reasoning
 ```python
-import torch
-from src.ir import Retriever
+# Build the sparse index for the passages
+retriever.build_index(passages, index_type="sparse")
+print(retriever.index)
 
-query = "Who first proposed the theory of relativity?"
-passages = [
-    "Albert Einstein (14 March 1879 – 18 April 1955) was a German-born theoretical physicist who is widely held to be one of the greatest and most influential scientists of all time. He is best known for developing the theory of relativity.",
-    "Sir Isaac Newton FRS (25 December 1642 – 20 March 1727) was an English polymath active as a mathematician, physicist, astronomer, alchemist, theologian, and author who was described in his time as a natural philosopher.",
-    "Nikola Tesla (10 July 1856 – 7 January 1943) was a Serbian-American inventor, electrical engineer, mechanical engineer, and futurist. He is known for his contributions to the design of the modern alternating current (AC) electricity supply system."
-]
+# Output:
+# Index Type      : SparseIndex
+# Vector Type     : torch.sparse_csr
+# Vector Shape    : torch.Size([3, 29523])
+# Vector Device   : cuda:0
+# Number of Texts : 3
 
-# Initialize the retriever
-svdr = Retriever.from_pretrained("vsearch/svdr-nq")
-svdr = svdr.to("cuda")
+# Save the index to disk
+index_file = "/path/to/index.npz"
+retriever.save_index(path)
 
-# Disentangling query embedding
-dst_result = svdr.encoder_q.dst(query, topk=768, visual=False) # Generate a word cloud if `visual`=True
-print(dst_result)
+# Load the index from disk
+index_file = "/path/to/index.npz"
+data_file = "/path/to/texts.jsonl"
+retriever.load_index(index_file=index_file, data_file=data_file)
+```
+
+After building the index, you can retrieve results for queries directly from a pre-built index.
+
+```python
+# Search top-k results for queries
+queries = [query]
+results = retriever.retrieve(queries, k=1)
+print(results)
+
+# Output:
+# SearchResults(
+#   ids=tensor([[0]], device='cuda:0'), 
+#   scores=tensor([[97.2458]], device='cuda:0')
+# )
+
+query_id = 0
+top1_psg_id = results.ids[query_id][0]
+top1_psg = retriever.index.get_sample(top1_psg_id)
+print(top1_psg)
+# Output:
+# Albert Einstein (14 March 1879 – 18 April 1955) was a German-born theoretical physicist who is widely held to be one of the greatest and most influential scientists of all time. He is best known for developing the theory of relativity.
+```
+
+### Building a Bag-of-Token Index for Faster Retrieval Setup
+
+Our framework supports a non-parametric index built directly from the tokenizer, known as the **Bag-of-Token (BoT) index**. This approach significantly reduces indexing time and disk storage size by over 90%. You can build and use a BoT index as follows:
+
+```python
+# Build the bag-of-token index for the passages
+retriever.build_index(passages, index_type="bag_of_token")
+print(retriever.index)
+
+# Output:
+# Index Type      : BoTIndex
+# Vector Type     : torch.sparse_csr
+# Vector Shape    : torch.Size([3, 29523])
+# Vector Device   : cuda:0
+# Number of Texts : 3
+
+# Search top-k results from bag-of-token index, and embed and rerank them on-the-fly
+queries = [query]
+results = retriever.retrieve(queries, k=3, rerank=True)
+print(results)
+
+# Output:
+# SearchResults(
+#   ids=tensor([0, 2, 1], device='cuda:3'), 
+#   scores=tensor([8.0417, 4.8766, 4.8251], device='cuda:0')
+# )
+```
+
+
+### Inspecting IR insights from Representation
+```python
+# Inspect token-level importance/weights of the query embeddings
+token_weights = retriever.encoder_q.dst(query, topk=768, visual=False) 
+print(token_weights)
 
 # Output: 
 # {
-#     'relativity': 6.1560163497924805, 
-#     'tensor': 3.383471727371216, 
-#     'gravitational': 3.117488145828247, 
+#     'relativity': 7.262620449066162, 
+#     'proposed': 3.588329792022705, 
+#     'first': 2.918099880218506, 
 #     ...
 # }
 
-# Retrieval reasoning
-reasons = svdr.explain(q=query, p=passages[0], topk=768, visual=False)
-print(reasons)
+# Inspect token-level contributions to the relevance score (i.e., retrieval results)
+token_contributions = retriever.explain(q=query, p=passages[0], topk=768, visual=False)
+print(token_contributions)
 
 # Output: 
 # {
-#     'relativity': 39.76305470546913, 
-#     'einstein': 6.619070599316387, 
-#     'theory': 3.57103090893213, 
+#     'relativity': 54.66442432370013, 
+#     'whom': 13.934619790257784, 
+#     'theory': 4.645142051911478, 
 #     ...
 # }
 ```
-</details>
 
 <details>
-<summary>Semi-Parametric Search (alpha and beta search) </summary>
+<summary>Semi-parametric Retrieval</summary>
 
 ### Alpha search
 ```python
@@ -214,6 +245,7 @@ p_bin = svdr.encoder_p.embed(passages, bow=True)
 scores = q_emb @ p_bin.t()
 ```
 </details>
+
 
 <details>
 <summary>Cross-modal Retrieval</summary>
@@ -239,16 +271,6 @@ print(scores)
 ```
 </details>
 
-<!--
-<details>
-<summary>Visualization</summary>
-
-<div align=center>
-    <img src="docs/images/home/visual.png" width="100%" height="100%">
-</div>
-
-</details>
--->
 
 ## 👾 Training
 We are testing on `python==3.9` and `torch==2.2.1`. Configuration is handled through `hydra==1.3.2`.
