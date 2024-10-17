@@ -196,3 +196,17 @@ class SparseIndex(Index):
         except Exception as e:
             logger.error(f"Failed to save index to {path}: {e}")
             raise
+
+
+class BoTIndex(SparseIndex):
+    def __init__(
+        self,
+        index_file: Optional[str] = None,
+        data_file: Optional[str] = None,
+        fp16: bool = True,
+        device: str = "cpu",
+        low_memory: bool = False,
+        shift: int = 0,
+    ):
+        self.shift = shift
+        super().__init__(index_file, data_file, fp16, device, low_memory)

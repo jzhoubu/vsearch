@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from typing import Any, Tuple, List, Union
 import numpy as np
 from scipy.sparse import save_npz, csr_array, vstack
-from .index import SearchResults, Index, SparseIndex, IndexType
+from .index import SearchResults, IndexType, Index, SparseIndex, BoTIndex
 from .index_utils import get_first_unique_n
 from ..biencoder.biencoder import BiEncoder, BiEncoderConfig
 from ..utils.qa_utils import has_answer
@@ -104,12 +104,21 @@ class Retriever(BiEncoder):
         k: int = 5, 
         dropout: float = 0, 
         a: int = None, 
-        index: Index = None
+        index: Index = None,
+        rerank: bool = False,
     ) -> SearchResults:
         index = index or self.index
         a = a or self.encoder_q.config.topk
         q_emb = self.process_query(queries, dropout, a)
         results = self.index.search(q_emb, k=k)
+        if rerank and self.index_type == IndexType.BAG_OF_TOKEN:
+            ret_indices = results.ids
+            ret_texts = [self.index.get_sample(i) for i in ret_indices.flatten().tolist()]
+            p_emb = self.encoder_p.embed(ret_texts, batch_size=32)
+            p_emb = p_emb.view(-1, k, q_emb.shape[-1]).to(self.device)
+            rerank_results = torch.bmm(p_emb, q_emb.unsqueeze(-1).to(self.device)).squeeze()
+            rerank_scores, rerank_indices = rerank_results.topk(k)
+            results = SearchResults(rerank_indices, rerank_scores)
         return results
     
     def retireve_negatives(
@@ -176,7 +185,8 @@ class Retriever(BiEncoder):
         batch_size: int = 32,
         max_len: int = 128,
         max_token: int = None,
-        num_shift: int = 999
+        num_shift: int = 999,
+        fp16: int = True,
     ) -> csr_array:
         """
         Builds bag-of-token (BoT) vectors of text.
@@ -193,10 +203,11 @@ class Retriever(BiEncoder):
         """
         tokenizer = self.encoder_p.tokenizer
         vocab_size = len(tokenizer.vocab)
+        dtype = torch.float16 if fp16 else torch.float32
         bot_embs = []
-        batch_bot_emb = np.zeros([batch_size, vocab_size])
+        batch_bot_emb = torch.zeros([batch_size, vocab_size], dtype=dtype)
         for batch_start in tqdm(range(0, len(texts), batch_size), desc="Building Bag-of-Token Index"):
-            batch_bot_emb[:, :] = 0
+            batch_bot_emb.zero_()
             batch_texts = texts[batch_start: batch_start+batch_size]
             input_ids = tokenizer(batch_texts, max_length=max_len, truncation=True)['input_ids']
             for i, token_ids in enumerate(input_ids):
@@ -207,9 +218,14 @@ class Retriever(BiEncoder):
                 batch_bot_emb_trimmed = batch_bot_emb[:len(batch_texts), num_shift:]
             else:
                 batch_bot_emb_trimmed = batch_bot_emb[:, num_shift:]            
-            bot_embs.append(csr_array(batch_bot_emb_trimmed))
-        bot_emb_csr = vstack(bot_embs)
+            bot_embs.append(batch_bot_emb_trimmed)
+
+        bot_embs_coo = [emb.to_sparse_coo() for emb in bot_embs]
+        bot_emb_coo = torch.cat(bot_embs_coo, dim=0)
+        bot_emb_csr = bot_emb_coo.to_sparse_csr()
+
         return bot_emb_csr
+
 
     def _build_embedding_vectors(
         self,
@@ -264,7 +280,7 @@ class Retriever(BiEncoder):
 
         elif index_type == IndexType.BAG_OF_TOKEN:
             # Build bag-of-token index
-            self.index = SparseIndex()
+            self.index = BoTIndex()
             self.index.data = texts
             bot_vector = self._build_bot_vectors(texts, batch_size=batch_size)
             self.index.vector = bot_vector
@@ -291,10 +307,10 @@ class Retriever(BiEncoder):
         else:
             if isinstance(index_type, str):
                 index_type = IndexType(index_type.lower())
-            else: 
+            else:
                 raise TypeError(
                     "index_type must be an instance of IndexType, int, or str."
-                )    
+                )
         self.index_type = index_type
         if index_type == IndexType.DENSE:
             self.index = Index(index_file, data_file, device=self.device)
