@@ -5,8 +5,6 @@
 
 **Vsearch**: Representing data on LM <u>**V**</u>ocabulary space for <u>**Search**</u>. 
 
-An extensible, transparent, trainable toolbox for retrieval-augmented frameworks, designed to be user-friendly, efficient, and accessible, empowering individuals to customize and deploy their own retrieval-based applications.
-
 
 This repository includes:
 - VDR: [Retrieval-based Disentangled Representation Learning with Natural Language Supervision](https://openreview.net/pdf?id=ZlQRiFmq7Y) 
@@ -53,8 +51,10 @@ This repository includes:
     - Download Data
 
 2. [Quick Start](#-quick-start)
-    - Text-to-text Retrieval
-    - Disentanglement and Reasoning
+    - Embedding and Compute Relevance
+    - Building an Index for Large-scale Retrieval
+    - Building a Bag-of-Token Index for Faster Retrieval Setup
+    - Inspecting Retrieval insights from Representation
     - Semi-parametric Search
     - Cross-modal Retrieval
 
@@ -107,12 +107,12 @@ passages = [
 ]
 
 # Initialize the retriever
-retriever = Retriever.from_pretrained("vsearch/svdr-msmarco")
-retriever = retriever.to("cuda")
+ir = Retriever.from_pretrained("vsearch/svdr-msmarco")
+ir = ir.to("cuda")
 
 # Embed the query and passages
-q_emb = retriever.encoder_q.embed(query)  # Shape: [1, V]
-p_emb = retriever.encoder_p.embed(passages)  # Shape: [4, V]
+q_emb = ir.encoder_q.embed(query)  # Shape: [1, V]
+p_emb = ir.encoder_p.embed(passages)  # Shape: [4, V]
 
  # Query-passage Relevance
 scores = q_emb @ p_emb.t()
@@ -128,8 +128,8 @@ For large-scale retrieval tasks, it's efficient to build the index once and reus
 
 ```python
 # Build the sparse index for the passages
-retriever.build_index(passages, index_type="sparse")
-print(retriever.index)
+ir.build_index(passages, index_type="sparse")
+print(ir.index)
 
 # Output:
 # Index Type      : SparseIndex
@@ -140,12 +140,12 @@ print(retriever.index)
 
 # Save the index to disk
 index_file = "/path/to/index.npz"
-retriever.save_index(path)
+ir.save_index(path)
 
 # Load the index from disk
 index_file = "/path/to/index.npz"
 data_file = "/path/to/texts.jsonl"
-retriever.load_index(index_file=index_file, data_file=data_file)
+ir.load_index(index_file=index_file, data_file=data_file)
 ```
 
 After building the index, you can retrieve results for queries directly from a pre-built index.
@@ -153,18 +153,18 @@ After building the index, you can retrieve results for queries directly from a p
 ```python
 # Search top-k results for queries
 queries = [query]
-results = retriever.retrieve(queries, k=1)
+results = ir.retrieve(queries, k=3)
 print(results)
 
 # Output:
 # SearchResults(
-#   ids=tensor([[0]], device='cuda:0'), 
-#   scores=tensor([[97.2458]], device='cuda:0')
+#   ids=tensor([[0, 1, 2]], device='cuda:0'),
+#   scores=tensor([[97.2458, 39.7507, 37.6407]], device='cuda:0')
 # )
 
 query_id = 0
 top1_psg_id = results.ids[query_id][0]
-top1_psg = retriever.index.get_sample(top1_psg_id)
+top1_psg = ir.index.get_sample(top1_psg_id)
 print(top1_psg)
 # Output:
 # Albert Einstein (14 March 1879 – 18 April 1955) was a German-born theoretical physicist who is widely held to be one of the greatest and most influential scientists of all time. He is best known for developing the theory of relativity.
@@ -176,8 +176,8 @@ Our framework supports a non-parametric index built directly from the tokenizer,
 
 ```python
 # Build the bag-of-token index for the passages
-retriever.build_index(passages, index_type="bag_of_token")
-print(retriever.index)
+ir.build_index(passages, index_type="bag_of_token")
+print(ir.index)
 
 # Output:
 # Index Type      : BoTIndex
@@ -188,13 +188,13 @@ print(retriever.index)
 
 # Search top-k results from bag-of-token index, and embed and rerank them on-the-fly
 queries = [query]
-results = retriever.retrieve(queries, k=3, rerank=True)
+results = ir.retrieve(queries, k=3, rerank=True)
 print(results)
 
 # Output:
 # SearchResults(
 #   ids=tensor([0, 2, 1], device='cuda:3'), 
-#   scores=tensor([8.0417, 4.8766, 4.8251], device='cuda:0')
+#   scores=tensor([97.2964, 39.7844, 37.6955], device='cuda:0')
 # )
 ```
 
@@ -202,7 +202,7 @@ print(results)
 ### Inspecting IR insights from Representation
 ```python
 # Inspect token-level importance/weights of the query embeddings
-token_weights = retriever.encoder_q.dst(query, topk=768, visual=False) 
+token_weights = ir.encoder_q.dst(query, topk=768, visual=False) 
 print(token_weights)
 
 # Output: 
@@ -214,7 +214,7 @@ print(token_weights)
 # }
 
 # Inspect token-level contributions to the relevance score (i.e., retrieval results)
-token_contributions = retriever.explain(q=query, p=passages[0], topk=768, visual=False)
+token_contributions = ir.explain(q=query, p=passages[0], topk=768, visual=False)
 print(token_contributions)
 
 # Output: 
