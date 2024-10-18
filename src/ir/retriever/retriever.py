@@ -71,7 +71,12 @@ class Retriever(BiEncoder):
         else:
             return q_emb, p_emb
 
-    def process_query(self, queries: Union[str, List[str], np.ndarray, T], dropout: float, a: int = None) -> T:
+    def process_query(
+        self, queries: Union[str, List[str], np.ndarray, T], 
+        dropout: float = 0, 
+        a: int = None, 
+        batch_size: int = 32
+    ) -> T:
         """
         Process the input queries into proper embeddings for retrieval.
 
@@ -83,16 +88,17 @@ class Retriever(BiEncoder):
         Returns:
             T: Query embedding in a torch tensor.
         """
+        num_activation = a or self.encoder_q.config.topk
         if isinstance(queries, str):
-            q_emb = self.encoder_q.embed([queries], topk=a or self.encoder_q.config.topk)
+            q_emb = self.encoder_q.embed([queries], batch_size=batch_size, topk=num_activation)
         elif isinstance(queries, list) and isinstance(queries[0], str):
-            q_emb = self.encoder_q.embed(queries, topk=a or self.encoder_q.config.topk)
+            q_emb = self.encoder_q.embed(queries, batch_size=batch_size, topk=num_activation)
         elif isinstance(queries, np.ndarray):
             q_emb = torch.Tensor(queries)
         elif isinstance(queries, T):
             q_emb = queries
         else:
-            raise NotImplementedError("Query type not supported")
+            raise NotImplementedError(f"Query type {type(queries)} not supported")
         if dropout:
             q_emb = F.dropout(q_emb, p=dropout)
         return q_emb
@@ -106,17 +112,34 @@ class Retriever(BiEncoder):
         a: int = None, 
         index: Index = None,
         rerank: bool = False,
+        batch_size: int = 32,
     ) -> SearchResults:
+        """
+        Retrieve top-k results for the given queries, with optional reranking for bag-of-token index.
+
+        Parameters:
+            queries (Union[List[str], np.ndarray, torch.Tensor]): The input queries.
+            k (int): Number of top results to retrieve.
+            dropout (float): Dropout rate for query processing.
+            a (Optional[int]): Number of activated dimension. Defaults to encoder_q.config.topk.
+            index (Optional[Index]): The index to search.
+            rerank (bool): Whether to perform reranking on the retrieved results, only work for bag-of-token index.
+            batch_size (int): Batch size for embedding query.
+
+        Returns:
+            SearchResults: The search results containing IDs and scores.
+        """
+
         index = index or self.index
         a = a or self.encoder_q.config.topk
-        q_emb = self.process_query(queries, dropout, a)
+        q_emb = self.process_query(queries, dropout, a, batch_size=batch_size)
         results = self.index.search(q_emb, k=k)
         if rerank and self.index_type == IndexType.BAG_OF_TOKEN:
             ret_indices = results.ids
             ret_texts = [self.index.get_sample(i) for i in ret_indices.flatten().tolist()]
-            p_emb = self.encoder_p.embed(ret_texts, batch_size=32)
+            p_emb = self.encoder_p.embed(ret_texts, batch_size=batch_size, require_grad=False)
             p_emb = p_emb.view(-1, k, q_emb.shape[-1]).to(self.device)
-            rerank_results = torch.bmm(p_emb, q_emb.unsqueeze(-1).to(self.device)).squeeze()
+            rerank_results = torch.bmm(p_emb, q_emb.unsqueeze(-1).to(self.device)).squeeze().cpu()
             rerank_scores, rerank_indices = rerank_results.topk(k)
             results = SearchResults(rerank_indices, rerank_scores)
         return results
@@ -314,8 +337,10 @@ class Retriever(BiEncoder):
         self.index_type = index_type
         if index_type == IndexType.DENSE:
             self.index = Index(index_file, data_file, device=self.device)
-        elif index_type in [IndexType.SPARSE, IndexType.BAG_OF_TOKEN]:
+        elif index_type == IndexType.SPARSE:
             self.index = SparseIndex(index_file, data_file, device=self.device)
+        elif index_type == IndexType.BAG_OF_TOKEN:
+            self.index = BoTIndex(index_file, data_file, device=self.device)
         else:
             raise NotImplementedError(f"Unknown index type: {index_type}")
 

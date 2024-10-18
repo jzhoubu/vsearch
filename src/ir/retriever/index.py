@@ -23,6 +23,8 @@ class IndexType(Enum):
     BAG_OF_TOKEN = 'bag_of_token'
 
 class Index():
+    index_type = IndexType.DENSE
+
     def __init__(self, index_file: Optional[str] = None, data_file: Optional[str] = None, fp16: bool = True, device: str = "cpu", low_memory: bool = False):
         self.data = None
         self.vector = None
@@ -34,7 +36,7 @@ class Index():
     def init_index(self, index_path: Optional[str], fp16: bool = True):
         if index_path:
             files = sorted(glob.glob(files))
-            logger.info(f"***** Loading index from {len(files)} files *****")
+            logger.info(f"***** Loading {self.index_type.value} Index from {len(files)} files *****")
             shards = [torch.load(file, map_location=torch.device('cpu')) for file in files]
             vector = vstack(shards) if len(shards) > 1 else shards[0]
             self.vector = vector.astype(torch.float16) if fp16 else vector
@@ -116,14 +118,16 @@ class Index():
         info = (
             f'Index Type        : {type(self).__name__}\n'
             f'Vector Shape      : {self.vector.shape}\n'
-            f'Vector Type       : {self.vector.layout}\n'
+            f'Vector Dtype      : {self.vector.dtype}\n'
+            f'Vector Layout     : {self.vector.layout}\n'
             f'Number of Texts   : {len(self.data) if self.data else 0}\n'
             f'Device            : {self.device}\n'
         )
         return info
 
-
 class SparseIndex(Index):
+    index_type = IndexType.SPARSE
+
     def __init__(
         self,
         index_file: Optional[str] = None,
@@ -135,6 +139,7 @@ class SparseIndex(Index):
     ):
         self.shift = shift
         super().__init__(index_file, data_file, fp16, device, low_memory)
+
 
     def _scipy_csr_to_torch_csr(self, mat: csr_array) -> T:
         """
@@ -163,16 +168,15 @@ class SparseIndex(Index):
             index_file (Optional[str]): Path pattern to the index files to load.
             fp16 (bool): Whether to convert the index to 16-bit floating point precision.
         """
-        if not index_file:
-            return
-        files = sorted(glob.glob(index_file))
-        logger.info(f"***** Loading Sparse Index from {len(files)} files *****")
-        shards = [load_npz(f)[:, self.shift:] for f in files]        
-        vector = vstack(shards) if len(shards) > 1 else shards[0]
-        self.vector = vector.astype(np.float16) if fp16 else vector
-        logger.info(f"***** Converting Sparse index to torch CSR Tensor *****")
-        self.vector = self._scipy_csr_to_torch_csr(vector)
-        self.vector = self.vector.to(self.device)
+        if index_file:
+            files = sorted(glob.glob(index_file))
+            logger.info(f"***** Loading {self.index_type.value} Index from {len(files)} files *****")
+            shards = [load_npz(f)[:, self.shift:] for f in files]        
+            vector = vstack(shards) if len(shards) > 1 else shards[0]
+            vector = vector.astype(np.float16) if fp16 else vector
+            logger.info(f"***** Converting Sparse index to torch CSR Tensor *****")
+            self.vector = self._scipy_csr_to_torch_csr(vector)
+            self.vector = self.vector.to(self.device)
 
     def save(self, path):
         """
@@ -199,6 +203,8 @@ class SparseIndex(Index):
 
 
 class BoTIndex(SparseIndex):
+    index_type = IndexType.BAG_OF_TOKEN
+
     def __init__(
         self,
         index_file: Optional[str] = None,
@@ -210,3 +216,4 @@ class BoTIndex(SparseIndex):
     ):
         self.shift = shift
         super().__init__(index_file, data_file, fp16, device, low_memory)
+        
