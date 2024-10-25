@@ -134,14 +134,17 @@ class Retriever(BiEncoder):
         a = a or self.encoder_q.config.topk
         q_emb = self.process_query(queries, dropout, a, batch_size=batch_size)
         results = self.index.search(q_emb, k=k)
-        if rerank and self.index_type == IndexType.BAG_OF_TOKEN:
+        if rerank and self.index.index_type == IndexType.BAG_OF_TOKEN:
             ret_indices = results.ids
             ret_texts = [self.index.get_sample(i) for i in ret_indices.flatten().tolist()]
             p_emb = self.encoder_p.embed(ret_texts, batch_size=batch_size, require_grad=False)
             p_emb = p_emb.view(-1, k, q_emb.shape[-1]).to(self.device)
             rerank_results = torch.bmm(p_emb, q_emb.unsqueeze(-1).to(self.device)).squeeze().cpu()
             rerank_scores, rerank_indices = rerank_results.topk(k)
-            results = SearchResults(rerank_indices, rerank_scores)
+            rerank_indices = rerank_indices.view(q_emb.size(0), k)
+            rerank_scores = rerank_scores.view(q_emb.size(0), k)
+            reranked_ids = torch.gather(ret_indices.cpu(), 1, rerank_indices)
+            results = SearchResults(reranked_ids, rerank_scores)
         return results
     
     def retireve_negatives(
