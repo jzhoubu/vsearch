@@ -114,7 +114,7 @@ ir = ir.to("cuda")
 q_emb = ir.encoder_q.embed(query)  # Shape: [1, V]
 p_emb = ir.encoder_p.embed(passages)  # Shape: [4, V]
 
- # Query-passage Relevance
+# Query-passage Relevance
 scores = q_emb @ p_emb.t()
 print(scores)
 
@@ -133,10 +133,11 @@ print(ir.index)
 
 # Output:
 # Index Type      : SparseIndex
-# Vector Type     : torch.sparse_csr
 # Vector Shape    : torch.Size([3, 29523])
-# Vector Device   : cuda:0
+# Vector Dtype    : torch.float32
+# Vector Layout   : torch.sparse_csr
 # Number of Texts : 3
+# Vector Device   : cuda:0
 
 # Save the index to disk
 index_file = "/path/to/index.npz"
@@ -148,7 +149,7 @@ data_file = "/path/to/texts.jsonl"
 ir.load_index(index_file=index_file, data_file=data_file)
 ```
 
-After building the index, you can retrieve results for queries directly from a pre-built index.
+You can retrieve results for queries directly from a pre-built index.
 
 ```python
 # Search top-k results for queries
@@ -167,6 +168,7 @@ top1_psg_id = results.ids[query_id][0]
 top1_psg = ir.index.get_sample(top1_psg_id)
 print(top1_psg)
 # Output:
+
 # Albert Einstein (14 March 1879 – 18 April 1955) was a German-born theoretical physicist who is widely held to be one of the greatest and most influential scientists of all time. He is best known for developing the theory of relativity.
 ```
 
@@ -181,10 +183,11 @@ print(ir.index)
 
 # Output:
 # Index Type      : BoTIndex
-# Vector Type     : torch.sparse_csr
 # Vector Shape    : torch.Size([3, 29523])
-# Vector Device   : cuda:0
+# Vector Dtype    : torch.float16
+# Vector Layout   : torch.sparse_csr
 # Number of Texts : 3
+# Vector Device   : cuda:0
 
 # Search top-k results from bag-of-token index, and embed and rerank them on-the-fly
 queries = [query]
@@ -316,7 +319,7 @@ During training, we display `InfoCard` to monitor the training progress.
 > </details>
 
 
-
+<!--
 ## 🎮 Inference (Large-scale Retrieval)
 
 For dense retrieval (DPR) inference, please see detailed documentation [here](examples/inference_dense/README.md).
@@ -376,7 +379,7 @@ Parameters:
 - `--text_file`: Path to the corpus file (`.jsonl` format).
 - `--result_file`: Path to search results (`.json` format).
 - `--qa_file`: Path to DPR-provided qa file (`.csv` format)
-
+-->
 
 ## 🍉 Citation
 If you find this repository useful, please consider giving ⭐ and citing our paper:
