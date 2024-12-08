@@ -1,18 +1,16 @@
 import logging
 import torch
-from typing import Tuple
+from typing import Tuple, List
 import torch.nn.functional as F
 from torch import Tensor as T
-
+from functools import partial
 from ..utils.biencoder_utils import BiEncoderBatch
 from .ddp_utils import GatherLayer
 from .model_utils import move_to_device
-from ..utils.sparsify_utils import build_bow_mask, build_topk_mask, build_cts_mask
+from ..utils.sparse import build_bow_mask, build_topk_mask, build_cts_mask
 from .info_card import InfoCard
 
 logger = logging.getLogger(__name__)
-
-
 
 
 def fetch_global_vectors(emb_local, bow_local, k=768):
@@ -92,7 +90,6 @@ def _do_biencoder_fwd_pass(
                 cfg,
                 q_emb_local=q_emb,
                 p_emb_local=p_emb,
-                logger=logger,
             )
     
     else:
@@ -173,11 +170,11 @@ def compute_vdr_loss(
         info_card.wrap_info()
         logger.info(info_card.info)
 
-    retrieval_loss_func = SymmetryBiEncoderNllLoss() if cfg.train.sym_loss else BiEncoderNllLoss()
+    loss_func = partial(symmetry_biencoder_nll_loss, scaled_loss=cfg.train.scaled_loss) if cfg.train.sym_loss else biencoder_nll_loss
 
     if getattr(cfg.train, "semi", True):
-        loss_1, is_correct_1 = retrieval_loss_func.calc(q_emb_topk_global, p_emb_global)
-        loss_2, is_correct_2 = retrieval_loss_func.calc(q_emb_global, p_emb_topk_global)
+        loss_1, is_correct_1 = loss_func(q_emb_topk_global, p_emb_global)
+        loss_2, is_correct_2 = loss_func(q_emb_global, p_emb_topk_global)
         
         if getattr(cfg.train, "cts_mask", None):
             cts_mask_activate = build_cts_mask(q_bin_global)
@@ -193,21 +190,21 @@ def compute_vdr_loss(
             p_bin_global = p_bin_global + cts_mask_activate_norm * cfg.train.cts_mask_weight
             q_emb_global = q_emb_global * cts_mask_deactivate
 
-        loss_3, is_correct_3 = retrieval_loss_func.calc(q_bin_global, p_emb_global)
-        loss_4, is_correct_4 = retrieval_loss_func.calc(q_emb_global, p_bin_global)
+        loss_3, is_correct_3 = loss_func(q_bin_global, p_emb_global)
+        loss_4, is_correct_4 = loss_func(q_emb_global, p_bin_global)
 
         loss = (loss_1 + loss_2 + loss_3 + loss_4) / 4
-        is_correct_parametric = (is_correct_1 + is_correct_2) / 2
-        is_correct_semiparametric = (is_correct_3 + is_correct_4) / 2
+        is_correct_para = (is_correct_1 + is_correct_2) / 2
+        is_correct_semipara = (is_correct_3 + is_correct_4) / 2
         
     else:
-        loss_1, is_correct_1 = retrieval_loss_func.calc(q_emb_topk_global, p_emb_global)
-        loss_2, is_correct_2 = retrieval_loss_func.calc(q_bin_global, p_emb_global)
+        loss_1, is_correct_1 = loss_func(q_emb_topk_global, p_emb_global)
+        loss_2, is_correct_2 = loss_func(q_bin_global, p_emb_global)
         loss = (loss_1 + loss_2) / 2
-        is_correct_parametric = is_correct_1
-        is_correct_semiparametric = is_correct_2
+        is_correct_para = is_correct_1
+        is_correct_semipara = is_correct_2
 
-    return loss, is_correct_semiparametric, is_correct_parametric
+    return loss, is_correct_semipara, is_correct_para
 
 
 
@@ -215,7 +212,6 @@ def compute_dpr_loss(
     cfg,
     q_emb_local, 
     p_emb_local, 
-    logger=None,
 ) -> Tuple[T, bool]:
 
     N, D = q_emb_local.shape
@@ -223,11 +219,11 @@ def compute_dpr_loss(
     q_emb_global = torch.cat(GatherLayer.apply(q_emb_local.contiguous()), dim=0)
     p_emb_global = torch.cat(GatherLayer.apply(p_emb_local.contiguous()), dim=0)
     p_emb_global = p_emb_global.permute(1, 0, 2).contiguous().view(-1, D)
-    retrieval_loss_func = SymmetryBiEncoderNllLoss() if cfg.train.sym_loss else BiEncoderNllLoss()
-    loss, is_correct = retrieval_loss_func.calc(q_emb_global, p_emb_global)
+    loss_func = symmetry_biencoder_nll_loss if cfg.train.sym_loss else biencoder_nll_loss
+    loss, is_correct = loss_func(q_emb_global, p_emb_global)
     return loss, is_correct, is_correct
 
-
+'''
 class BiEncoderNllLoss(object):
     def calc(
         self,
@@ -239,7 +235,7 @@ class BiEncoderNllLoss(object):
         """
         positive_idx_per_question = list(range(q_emb.shape[0]))
         
-        scores = self.get_scores(q_emb, p_emb)
+        scores = q_emb @ p_emb.t()
 
         if len(q_emb.size()) > 1:
             q_num = q_emb.size(0)
@@ -258,10 +254,6 @@ class BiEncoderNllLoss(object):
 
         return loss, correct_predictions_count
 
-    @staticmethod
-    def get_scores(q_emb: T, p_emb: T) -> T:
-        return q_emb @ p_emb.t()
-
 
 class SymmetryBiEncoderNllLoss(object):
     def calc(
@@ -270,6 +262,7 @@ class SymmetryBiEncoderNllLoss(object):
         p_emb: T,
         temperature: float = 1, 
         positive_idx_per_q = None,
+        scaled_loss = False
     ) -> Tuple[T, int]:
         """
         Computes symmetry nll loss for the given lists of question and ctx vectors.
@@ -297,6 +290,99 @@ class SymmetryBiEncoderNllLoss(object):
             reduction="mean",
         )
 
-        loss = (loss1 + loss2) / 2
+        if scaled_loss:
+            loss = loss1 + (loss1 / loss2).detach() * loss2
+        else:
+            loss = loss1 + loss2
 
         return loss, correct_predictions_count
+'''
+
+
+def biencoder_nll_loss(
+    q_emb: torch.Tensor,
+    p_emb: torch.Tensor
+) -> Tuple[torch.Tensor, int]:
+    """
+    Computes NLL loss for the given lists of question and passage embeddings.
+    
+    Args:
+        q_emb (torch.Tensor): Question embeddings, shape [N, D].
+        p_emb (torch.Tensor): Passage embeddings, shape [N, D].
+
+    Returns:
+        Tuple[torch.Tensor, int]: The computed loss and the number of correct predictions.
+    """
+    positive_idx_per_question = list(range(q_emb.shape[0]))
+
+    # Compute similarity scores
+    scores = q_emb @ p_emb.t()  # Shape: [N, N]
+
+    # If q_emb has more than one dimension, reshape the scores
+    if len(q_emb.size()) > 1:
+        q_num = q_emb.size(0)
+        scores = scores.view(q_num, -1)
+
+    # Compute log softmax
+    softmax_scores = F.log_softmax(scores, dim=1)
+
+    # Compute NLL loss
+    loss = F.nll_loss(
+        softmax_scores,
+        torch.tensor(positive_idx_per_question).to(softmax_scores.device),
+        reduction="mean"
+    )
+
+    # Count correct predictions
+    max_score, max_idxs = torch.max(softmax_scores, 1)
+    correct_pred_cnt = (max_idxs == torch.tensor(positive_idx_per_question).to(max_idxs.device)).sum()
+
+    return loss, correct_pred_cnt
+
+
+def symmetry_biencoder_nll_loss(
+    q_emb: torch.Tensor,
+    p_emb: torch.Tensor,
+    temperature: float = 1,
+    positive_idx_per_q: List[int] = None,
+    scaled_loss: bool = False
+) -> Tuple[torch.Tensor, int]:
+    """
+    Computes symmetry NLL loss for the given lists of question and passage embeddings.
+    Args:
+        q_emb (torch.Tensor): Question embeddings, shape [N, D].
+        p_emb (torch.Tensor): Passage embeddings, shape [N, D].
+        temperature (float): Temperature scaling for logits.
+        positive_idx_per_q (List[int]): Indices of positive examples for each question. Default is None, which assumes all are positive.
+        scaled_loss (bool): Whether to scale the loss based on loss1/loss2 ratio.
+
+    Returns:
+        Tuple[torch.Tensor, int]: The computed loss and the number of correct predictions.
+    """
+    positive_idx_per_q = positive_idx_per_q or list(range(q_emb.shape[0]))
+
+    # Compute similarity scores
+    scores = q_emb @ p_emb.t()  # Shape: [N, N]
+    scores_t = scores.t()[positive_idx_per_q, :]  # Shape: [N, N]
+
+    # Compute log softmax
+    logits_per_q = F.log_softmax(scores / temperature, dim=1)  # Shape: [N, N]
+    target = torch.tensor(positive_idx_per_q).to(logits_per_q.device)
+    loss1 = F.nll_loss(logits_per_q, target, reduction="mean")
+
+    # Count correct predictions
+    max_score, max_idxs = torch.max(logits_per_q, 1)
+    correct_pred_cnt = (max_idxs == torch.tensor(positive_idx_per_q).to(max_idxs.device)).sum()
+
+    # Compute logits for context embeddings
+    logits_per_p = F.log_softmax(scores_t / temperature, dim=1)
+    target = torch.arange(0, q_emb.size(0)).long().to(logits_per_p.device)
+    loss2 = F.nll_loss(logits_per_p, target, reduction="mean")
+
+    # Combine the losses
+    if scaled_loss:
+        loss = loss1 + (loss1 / loss2).detach() * loss2
+    else:
+        loss = loss1 + loss2
+
+    return loss, correct_pred_cnt
