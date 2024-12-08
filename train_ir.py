@@ -54,7 +54,7 @@ class RetrieverTrainer(object):
         if hasattr(self.cfg, "index") and self.cfg.index is not None:
             logger.info("***** Initializing Index: %s", self.cfg.index)
             index = hydra.utils.instantiate(self.cfg.index_stores[self.cfg.index])            
-            index.to_cuda(device=self.cfg.device)
+            index.move_to_device(device=self.cfg.device)
             model.index = index
 
         if is_master():

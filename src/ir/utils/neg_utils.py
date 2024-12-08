@@ -6,7 +6,7 @@ import numpy as np
 from ..retriever.retriever import Retriever
 from ..utils.qa_utils import has_answer
 from ..data.biencoder_dataset import _normalize
-from ..index.base import Index
+from ..retriever.index import Index
 
 logger = logging.getLogger(__name__)
 
