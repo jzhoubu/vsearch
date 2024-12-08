@@ -4,7 +4,7 @@ import torch
 from typing import Tuple, List, Dict, Union
 from torch import Tensor as T
 from transformers import PreTrainedModel, PretrainedConfig
-from ..utils.visualize_utils import wordcloud_from_dict
+from ..utils.vis import wordcloud_from_dict
 
 
 from ..data.biencoder_dataset import BiEncoderSample
