@@ -9,8 +9,8 @@ import torch.nn.functional as F
 from tqdm import tqdm
 from transformers import AutoModel, AutoTokenizer, BertConfig, BatchEncoding, PreTrainedModel
 
-from ..utils.sparsify_utils import build_bow_mask, build_topk_mask, elu1p
-from ..utils.visualize_utils import wordcloud_from_dict
+from ..utils.sparse import build_bow_mask, build_topk_mask, elu1p
+from ..utils.vis import wordcloud_from_dict
 from ..training.ddp_utils import get_rank
 
 logger = logging.getLogger(__name__)
@@ -131,7 +131,7 @@ class VDREncoder(PreTrainedModel):
         """
 
         max_len = max_len or self.config.max_len
-        topk = topk or self.config.topk
+        topk = topk if topk is not None else self.config.topk
         texts = [texts] if isinstance(texts, str) else texts
         is_training = self.training
 
